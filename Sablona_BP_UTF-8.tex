@@ -19,6 +19,8 @@
 
 \usepackage{dirtree} %directory tree visualisation
 
+\usepackage{todonotes}
+
 % % list of acronyms
 % \usepackage[acronym,nonumberlist,toc,numberedsection=autolabel]{glossaries}
 % \iflanguage{czech}{\renewcommand*{\acronymname}{Seznam pou{\v z}it{\' y}ch zkratek}}{}
@@ -53,17 +55,91 @@
 % \newacronym{FIT}{FIT}{Fakulta informa{\v c}n{\' i}ch technologi{\' i}}
 
 \begin{introduction}
-	%sem napište úvod Vaší práce
+TODO: krátce napsat, k čemu ten program je
+
+TODO: zmínit NETCONF
+
+TODO: napsat, komu se to hodí (cesnet síťaři) a (krátce) co měli doteď
+
+TODO: \ldots a možná že se to bude používat na nějakých zařízeních (zjistit od Honzy, jak to přesně je)
 \end{introduction}
 
-\chapter{Cíl práce}
 
-\chapter{Analýza a návrh}
+\chapter{Cíl práce} \todo{Jsou cíle nutné? V podstatě tu jen opisuju zadání\ldots Ideálně bych to mergenul do úvodu nebo tak}
+Cílem práce je vytvořit konzolovou aplikaci, pomocí které lze vzdáleně konfigurovat zařízení pomocí protokolu NETCONF\@. Aplikace bude intuitivní, uživatel by ji měl být schopný ovládat i bez detailní znalosti NETCONF\@. Příkazy a jejich argumenty bude možné stiskem klávesy automaticky doplňovat.
 
-\chapter{Realizace}
+
+\chapter{Existující relevantní práce}
+TODO: Popsat detailněji, co je třeba, aby ten program dělal/uměl (nějaký use-case nebo tak něco) a že to současné programy neumí
+\section{Netopeer2-cli}
+TODO: Dopsat
+\section{sysrepocfg}
+TODO: Konkrétně popsat výhody, nevýhody (například, že to nemá nic společného s netconfem xd)
+\section{TODO: Mrknout na další programy (ne nutně cesneťácké)}
+
+
+\chapter{Návrh}
+TODO: něco vymyslet sem možná (nebo možná ne)
+
+\section{Protokoly a použité technologie?}
+TODO: dopsat o NETCONFU a YANGu, zmínit sysrepo
+
+\section{Koncepce programu}
+TODO: koncepce programu: interaktivní konzolová aplikace (shell) -> vysvětlit
+TODO: přidat příklad použití (nějakej copy paste z shellu)
+
+\section{Datový model}
+TODO: Popsat syntaxi a AST
+
+
+\chapter{Implementace}
+TODO: dopsat něco o použitém jazyku a proč zrovna C++
+
+\section{Součásti programu}
+TODO: obrázek kudy jdou data; pracovní cyklus programu (nějaký vývoják input -> parser -> interpreter\ldots)
+
+\subsection{Uživatelské rozhraní}
+TODO: napsat, že používám "readline" atd.
+TODO: ukázat replxx a proč nepoužívám readline/linenoise
+TODO: ukázat docopt.cpp
+
+\subsection{Parser}
+největší část programu
+TODO: ukázat Boost Spirit
+TODO: ukázat gramatiky
+TODO: ukázat libyang
+
+\subsection{Interpreter}
+TODO: dopsat (vezme user input a zavolá metody/funkce\ldots)
+
+\subsection{DatastoreAccess}
+TODO: dopsat (abstraktní rozhraní pro přístup do datastoru\ldots)
+
+\subsubsection{NetconfAccess}
+TODO: ukázat libnetconf2
+
+\subsubsection{SysrepoAccess}
+TODO: ukázat sysrepo klientskou knihovnu
+
+\subsection{Testování}
+TODO: ukázat doctest
+TODO: ukázat trompeloeil
+TODO: zmínit Catch
+
+\subsection{Knihovna na logování?}
+TODO: spdlog, použito jen v netconf cpp wrapperu\ldots od Honzy
+
+
+\chapter{Vyhodnocení}
+\section{Testování}
+TODO: testování přes doctest, především unit testy, ale i nějaký jiný (sysrepo.cpp)\@. hlášení bugů přes issue tracker, po opravení napsán test
+\section{Porovnání s konkurencí}
+TODO: popsat, že ačkoliv moje aplikace nepodporuje 100 \% YANGu/NETCONFu, na základní použití stačí (hlavní cíl byl, upravovat konfiguraci bez znalosti YANG modelů a NETCONFu)
+\section{Výsledky z nasazení}
+TODO: no, prej to Honza používá :D
 
 \begin{conclusion}
-	%sem napište závěr Vaší práce
+TODO: Něco dopsat sem, asi v závislosti na zbytku
 \end{conclusion}
 
 \bibliographystyle{csn690}
