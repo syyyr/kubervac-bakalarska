@@ -3,6 +3,7 @@ all: $(output_dir)/Sablona_BP_UTF-8.pdf
 
 $(output_dir)/Sablona_BP_UTF-8.pdf: $(output_dir) Sablona_BP_UTF-8.tex cvut-logo-bw.pdf  FITthesis.cls
 	xelatex -output-directory=$(output_dir) Sablona_BP_UTF-8.tex
+	xelatex -output-directory=$(output_dir) Sablona_BP_UTF-8.tex
 
 $(output_dir):
 	mkdir $(output_dir)
