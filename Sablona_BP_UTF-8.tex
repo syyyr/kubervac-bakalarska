@@ -3,7 +3,15 @@
 
 \usepackage[utf8]{inputenc} % LaTeX source encoded as UTF-8
 
+% my packages and stuff
 \usepackage{todonotes}
+\usepackage{xevlna}
+% from https://tex.stackexchange.com/a/251025
+\usepackage{relsize}
+\usepackage{xspace}
+\newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
+\newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
+
 
 \department{Katedra softwarového inženýrství}
 \title{Nástroj pro konfiguraci a monitorování}
@@ -28,9 +36,6 @@
 % \website{http://site.example/thesis} %volitelná URL práce, objeví se v tiráži - úplně odstraňte, nemáte-li URL práce
 
 \begin{document}
-
-% \newacronym{CVUT}{{\v C}VUT}{{\v C}esk{\' e} vysok{\' e} u{\v c}en{\' i} technick{\' e} v Praze}
-% \newacronym{FIT}{FIT}{Fakulta informa{\v c}n{\' i}ch technologi{\' i}}
 
 \begin{introduction}
 TODO: krátce napsat, k čemu ten program je
@@ -71,15 +76,26 @@ TODO: Popsat syntaxi a AST
 
 
 \chapter{Implementace}
-TODO: dopsat něco o použitém jazyku a proč zrovna C++
+TODO: dopsat něco o použitém jazyku a proč zrovna \Cpp{}
 
 \section{Součásti programu}
 TODO: obrázek kudy jdou data; pracovní cyklus programu (nějaký vývoják input -> parser -> interpreter\ldots)
 
 \subsection{Uživatelské rozhraní}
-TODO: napsat, že používám "readline" atd.
-TODO: ukázat replxx a proč nepoužívám readline/linenoise
-TODO: ukázat docopt.cpp
+Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá řádky uživatelského vstupu a zpracovává je. K interaktivnímu používání aplikace, je nutné implementovat nějaký způsob editace příkazové řádky. To zahrnuje především:
+\begin{itemize}
+\item možnost úpravy aktuálního obsahu příkazové řádky před odesláním
+\item klávesové zkratkty \todo{Reword this}
+\item automatické doplňování příkazů pomocí klávesové zkratky
+\item ukládání historie příkazů
+\end{itemize}
+Ideální knihovna by měla mít nativní \Cpp{} rozhraní (ačkoliv lze v \Cpp{} relativně jednoduše použít i C knihovny) a být header-only, tedy, že k jejímu použití stačí přidat její hlavičkový soubor a všechny implementační detaily jsou obsaženy v něm.
+
+Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}. \textit{Readline} umožňuje editaci příkazové řádky pomocí mnoha klávesových zkratek, převzatých z textových editorů \textit{EMACS} a \textit{Vi} a také velmi intuitivní inkrementální automatické doplňování (tj.\ postupně doplňování vícenásobným stisknutím klávesové zkratky). Nicméně, vzhledem k tomu, že je již poměrně zastaralá, má pouze rozhraní v jazyce C, tudíž to není dobrá volba pro moji aplikaci. Další nevýhodou je její implementace: \textit{Readline} obsahuje přibližně 20 tisíc řádek kódu především kvůli kompatibilitě s mnoha emulátory terminálů. V dnešní době většina terminálových aplikací podporuje základní VT100 escape sekvence\todo{vysvětlivku} a tudíž není třeba zastaralé terminály podporovat.\todo{ref na linenoise readme.md}
+
+Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} velmi malá --- má\todo{reword?} zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální).  Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
+
+TODO: ukázat docopt.cpp\todo{Ale někde jinde}
 
 \subsection{Parser}
 největší část programu
@@ -134,9 +150,10 @@ TODO: Něco dopsat sem, asi v závislosti na zbytku
 
 \chapter{Obsah přiloženého CD}
 
-\begin{figure}
-	\dirtree{
-	}
-\end{figure}
+%\begin{figure}
+%	\dirtree{
+%            .1
+%	}
+%\end{figure}
 
 \end{document}
