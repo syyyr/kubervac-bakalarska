@@ -102,6 +102,7 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 % TODO: intro o vstupu
 % TODO: ukázat gramatiky
 
+Ke zpracování gramatik příkazů je potřeba parser\todo{vysvětlivka}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě doporučení \todo{V podstatě jsem ji použil jen tak, bez zvážení, na základě Honzy} jsem použil knihovnu \textit{Boost Spirit X3}. Jednou z hlavních výhod knihovny \textit{Spirit} je, že gramatiky lze zádavat přímo do zdrojového kódu výhradně pomocí prostředků jazyka --- operátorů. To znamená, že není potřeba spouštět žádný preprocesor\todo{vysvětlivka}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
 \todo[inline]{Ukázka gramatiky napsané pomocí Spiritu}
 % TODO: dopsat gramatiky na základě datového modelu
 
