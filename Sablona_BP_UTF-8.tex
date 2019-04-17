@@ -12,6 +12,8 @@
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
 
+\hyphenation{NETCONF}
+
 
 \department{Katedra softwarového inženýrství}
 \title{Nástroj pro konfiguraci a monitorování}
@@ -63,17 +65,28 @@ Cílem práce je vytvořit konzolovou aplikaci, pomocí které lze vzdáleně ko
 
 
 \chapter{Návrh}
-% TODO: něco vymyslet sem možná (nebo možná ne)
+% TODO: něco sem možná
+\section{NETCONF a YANG}
+\textit{NETCONF} je protokol sloužící ke vzdálené úpravě konfigurace síťových zařízení. Je založen na XML-RPC\todo{vysvětlivku}. \textit{YANG}\todo{ref na RFC} je jazyk sloužící k modelování konfigurace. Pomocí různých zabudovaných konstruktů lze vybudovat konfigurační strom, který logicky sdružuje různé druhy konfigurace, definuje kde lze jakou hodnotu nastavit, jaké mají datové typy apod. Kromě konfigurace podporuje \textit{YANG} i definování různých procedur, které lze volat pomocí protokolu \textit{NETCONF}.
+% TODO: nějaký příklad YANGu
 
-\section{Protokoly a použité technologie?}
-% TODO: dopsat o NETCONFU a YANGu, zmínit sysrepo
+Více o \textit{YANGu} v kapitole\todo{nějaký ref nebo něco}.
 
-\section{Koncepce programu}
-% TODO: koncepce programu: interaktivní konzolová aplikace (shell) -> vysvětlit
+
+\section{Syntaxe}
+Základní syntaxe programu vypadá takto:
+% TODO: přidat nějakou syntaxi, něco jako "/> <název příkazu> <přepínače> <argumenty>"
+
+K pohybování konfiguračním stromem jsem zvolil podobný princip jako při pohybu adresářovou strukturou v počítači. Uživatel prozkoumává strom známými příkazy jako například \textit{cd}, nebo \textit{ls}. K manipulaci s hodnotami slouží například příkazy \textit{get} a \textit{set}.
+
+\begin{description} % TODO: příkazy jen takhle v seznamu nebo pro každej udělat subsection a popsat?
+    \item[TODO]{příkazy}
+\end{description}
+
+Program je koncipován jako interaktivní konzolová aplikace. Silnou stránkou konzolových aplikací je možnost použití ve skriptech\todo{vysvětlivka?}. Uživatel může aplikaci použít jednak interaktivně, napojením terminálu na vstup programu a manuálním zadáváním příkazů, ale také dávkově, uložením příkazů do souboru a vložením tohotu souboru na vstup programu.
 % TODO: přidat příklad použití (nějakej copy paste z shellu)
 
-\section{Datový model}
-% TODO: Popsat syntaxi a AST
+Aby bylo možné zadávat příkazy intuitivně, nabízí aplikace uživateli různé prostředky pro ulehčení zadávání vstupu, například různé klávesové zkratky pro pohyb v zadávaném textu, automatické doplňování stiskem tabulátoru (nebo jiné klávesové zkratky) a ukládání historie zadaných příkazů.
 
 
 \chapter{Implementace}
