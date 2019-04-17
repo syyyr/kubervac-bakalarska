@@ -90,7 +90,7 @@ Aby bylo možné zadávat příkazy intuitivně, nabízí aplikace uživateli r�
 
 
 \chapter{Implementace}
-% TODO: dopsat něco o použitém jazyku a proč zrovna \Cpp{}
+% TODO: dopsat něco o použitém jazyku a proč zrovna C++
 
 \section{Součásti programu}
 % TODO: obrázek kudy jdou data; pracovní cyklus programu (nějaký vývoják input -> parser -> interpreter...)
@@ -98,16 +98,16 @@ Aby bylo možné zadávat příkazy intuitivně, nabízí aplikace uživateli r�
 \subsection{Uživatelské rozhraní}
 Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá řádky uživatelského vstupu a zpracovává je. K interaktivnímu používání aplikace, je nutné implementovat nějaký způsob editace příkazové řádky. To zahrnuje především:
 \begin{itemize}
-\item možnost úpravy aktuálního obsahu příkazové řádky před odesláním
-\item klávesové zkratkty \todo{Reword this}
-\item automatické doplňování příkazů pomocí klávesové zkratky
-\item ukládání historie příkazů
+    \item možnost úpravy aktuálního obsahu příkazové řádky před odesláním
+    \item klávesové zkratkty \todo{Reword this}
+    \item automatické doplňování příkazů pomocí klávesové zkratky
+    \item ukládání historie příkazů
 \end{itemize}
 Ideální knihovna by měla mít nativní \Cpp{} rozhraní (ačkoliv lze v \Cpp{} relativně jednoduše použít i C knihovny) a být header-only, tedy, že k jejímu použití stačí přidat její hlavičkový soubor a všechny implementační detaily jsou obsaženy v něm.
 
 Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}\todo{ref?}. \textit{Readline} umožňuje editaci příkazové řádky pomocí mnoha klávesových zkratek, převzatých z textových editorů \textit{EMACS} a \textit{Vi} a také velmi intuitivní inkrementální automatické doplňování (tj.\ postupně doplňování vícenásobným stisknutím klávesové zkratky). Nicméně, vzhledem k tomu, že je již poměrně zastaralá, má pouze rozhraní v jazyce C, tudíž to není dobrá volba pro moji aplikaci. Další nevýhodou je její implementace: \textit{Readline} obsahuje přibližně 20 tisíc řádek kódu především kvůli kompatibilitě s mnoha emulátory terminálů. V dnešní době většina terminálových aplikací podporuje základní VT100 escape sekvence\todo{vysvětlivku} a tudíž není třeba zastaralé terminály podporovat.\todo{ref na linenoise readme.md}
 
-Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} velmi malá --- má\todo{reword?} zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální).  Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
+Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} velmi malá -- má\todo{reword?} zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální).  Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
 
 % TODO: ukázat docopt.cpp (Ale někde jinde)
 
@@ -115,8 +115,8 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 % TODO: intro o vstupu
 % TODO: ukázat gramatiky
 
-Ke zpracování gramatik příkazů je potřeba parser\todo{vysvětlivka}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě doporučení \todo{V podstatě jsem ji použil jen tak, bez zvážení, na základě Honzy} jsem použil knihovnu \textit{Boost Spirit X3}. Jednou z hlavních výhod knihovny \textit{Spirit} je, že gramatiky lze zádavat přímo do zdrojového kódu výhradně pomocí prostředků jazyka --- operátorů. To znamená, že není potřeba spouštět žádný preprocesor\todo{vysvětlivka}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
-\todo[inline]{Ukázka gramatiky napsané pomocí Spiritu}
+Ke zpracování gramatik příkazů je potřeba parser\todo{vysvětlivka}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě doporučení \todo{V podstatě jsem ji použil jen tak, bez zvážení, na základě Honzy} jsem použil knihovnu \textit{Boost Spirit X3}. Jednou z hlavních výhod knihovny \textit{Spirit} je, že gramatiky lze zádavat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů. To znamená, že není potřeba spouštět žádný preprocesor\todo{vysvětlivka}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
+% TODO: Ukázka gramatiky napsané pomocí Spiritu
 % TODO: dopsat gramatiky na základě datového modelu
 
 
@@ -164,8 +164,8 @@ Ke zpracování gramatik příkazů je potřeba parser\todo{vysvětlivka}. Imple
 \chapter{Seznam použitých zkratek}
 % \printglossaries
 \begin{description}
-	\item[GUI] Graphical user interface
-	\item[XML] Extensible markup language
+    \item[GUI] Graphical user interface
+    \item[XML] Extensible markup language
 \end{description}
 
 \chapter{Obsah přiloženého CD}
