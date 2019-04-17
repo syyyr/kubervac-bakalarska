@@ -20,6 +20,7 @@
 \authorWithDegrees{Václav Kubernát}
 \author{Václav Kubernát}
 \supervisor{Ing. Tomáš Čejka, Ph.D.}
+% TODO: dopsat
 \acknowledgements{Doplňte, máte-li komu a za co děkovat. V~opačném případě úplně odstraňte tento příkaz.}
 % TODO: dopsat
 \abstractCS{V~několika větách shrňte obsah a přínos této práce v~češtině. Po přečtení abstraktu by se čtenář měl mít čtenář dost informací pro rozhodnutí, zda chce Vaši práci číst.}
@@ -38,13 +39,13 @@
 \begin{document}
 
 \begin{introduction}
-TODO: krátce napsat, k čemu ten program je
+% TODO: krátce napsat, k čemu ten program je
 
-TODO: zmínit NETCONF
+% TODO: zmínit NETCONF
 
-TODO: napsat, komu se to hodí (cesnet síťaři) a (krátce) co měli doteď
+% TODO: napsat, komu se to hodí (cesnet síťaři) a (krátce) co měli doteď
 
-TODO: \ldots a možná že se to bude používat na nějakých zařízeních (zjistit od Honzy, jak to přesně je)
+% TODO: ... a možná že se to bude používat na nějakých zařízeních (zjistit od Honzy, jak to přesně je)
 \end{introduction}
 
 
@@ -53,33 +54,33 @@ Cílem práce je vytvořit konzolovou aplikaci, pomocí které lze vzdáleně ko
 
 
 \chapter{Existující relevantní práce}
-TODO: Popsat detailněji, co je třeba, aby ten program dělal/uměl (nějaký use-case nebo tak něco) a že to současné programy neumí
+% TODO: Popsat detailněji, co je třeba, aby ten program dělal/uměl (nějaký use-case nebo tak něco) a že to současné programy neumí
 \section{Netopeer2-cli}
-TODO: Dopsat
+% TODO: Dopsat
 \section{sysrepocfg}
-TODO: Konkrétně popsat výhody, nevýhody (například, že to nemá nic společného s netconfem xd)
-\section{TODO: Mrknout na další programy (ne nutně cesneťácké)}
+% TODO: Konkrétně popsat výhody, nevýhody (například, že to nemá nic společného s netconfem xd)
+\section{TODO Mrknout na další programy (ne nutně cesneťácké)}
 
 
 \chapter{Návrh}
-TODO: něco vymyslet sem možná (nebo možná ne)
+% TODO: něco vymyslet sem možná (nebo možná ne)
 
 \section{Protokoly a použité technologie?}
-TODO: dopsat o NETCONFU a YANGu, zmínit sysrepo
+% TODO: dopsat o NETCONFU a YANGu, zmínit sysrepo
 
 \section{Koncepce programu}
-TODO: koncepce programu: interaktivní konzolová aplikace (shell) -> vysvětlit
-TODO: přidat příklad použití (nějakej copy paste z shellu)
+% TODO: koncepce programu: interaktivní konzolová aplikace (shell) -> vysvětlit
+% TODO: přidat příklad použití (nějakej copy paste z shellu)
 
 \section{Datový model}
-TODO: Popsat syntaxi a AST
+% TODO: Popsat syntaxi a AST
 
 
 \chapter{Implementace}
-TODO: dopsat něco o použitém jazyku a proč zrovna \Cpp{}
+% TODO: dopsat něco o použitém jazyku a proč zrovna \Cpp{}
 
 \section{Součásti programu}
-TODO: obrázek kudy jdou data; pracovní cyklus programu (nějaký vývoják input -> parser -> interpreter\ldots)
+% TODO: obrázek kudy jdou data; pracovní cyklus programu (nějaký vývoják input -> parser -> interpreter...)
 
 \subsection{Uživatelské rozhraní}
 Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá řádky uživatelského vstupu a zpracovává je. K interaktivnímu používání aplikace, je nutné implementovat nějaký způsob editace příkazové řádky. To zahrnuje především:
@@ -95,45 +96,50 @@ Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}.
 
 Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} velmi malá --- má\todo{reword?} zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální).  Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
 
-TODO: ukázat docopt.cpp\todo{Ale někde jinde}
+% TODO: ukázat docopt.cpp (Ale někde jinde)
 
-\subsection{Parser}
-největší část programu
-TODO: ukázat Boost Spirit
-TODO: ukázat gramatiky
-TODO: ukázat libyang
+\subsection{Zpracování vstupu}
+% TODO: intro o vstupu
+% TODO: ukázat gramatiky
+
+\todo[inline]{Ukázka gramatiky napsané pomocí Spiritu}
+% TODO: dopsat gramatiky na základě datového modelu
+
+
+% TODO: ukázat Boost Spirit
+% TODO: ukázat libyang
 
 \subsection{Interpreter}
-TODO: dopsat (vezme user input a zavolá metody/funkce\ldots)
+% TODO: dopsat (vezme user input a zavolá metody/funkce...)
 
 \subsection{DatastoreAccess}
-TODO: dopsat (abstraktní rozhraní pro přístup do datastoru\ldots)
+% TODO: dopsat (abstraktní rozhraní pro přístup do datastoru...)
 
 \subsubsection{NetconfAccess}
-TODO: ukázat libnetconf2
+% TODO: ukázat libnetconf2
 
 \subsubsection{SysrepoAccess}
-TODO: ukázat sysrepo klientskou knihovnu
+% TODO: ukázat sysrepo klientskou knihovnu
 
 \subsection{Testování}
-TODO: ukázat doctest
-TODO: ukázat trompeloeil
-TODO: zmínit Catch
+% TODO: ukázat doctest
+% TODO: ukázat trompeloeil
+% TODO: zmínit Catch
 
 \subsection{Knihovna na logování?}
-TODO: spdlog, použito jen v netconf cpp wrapperu\ldots od Honzy
+% TODO: spdlog, použito jen v netconf cpp wrapperu... od Honzy
 
 
 \chapter{Vyhodnocení}
 \section{Testování}
-TODO: testování přes doctest, především unit testy, ale i nějaký jiný (sysrepo.cpp)\@. hlášení bugů přes issue tracker, po opravení napsán test
+% TODO: testování přes doctest, především unit testy, ale i nějaký jiný (sysrepo.cpp)\@. hlášení bugů přes issue tracker, po opravení napsán test
 \section{Porovnání s konkurencí}
-TODO: popsat, že ačkoliv moje aplikace nepodporuje 100 \% YANGu/NETCONFu, na základní použití stačí (hlavní cíl byl, upravovat konfiguraci bez znalosti YANG modelů a NETCONFu)
+% TODO: popsat, že ačkoliv moje aplikace nepodporuje 100 \% YANGu/NETCONFu, na základní použití stačí (hlavní cíl byl, upravovat konfiguraci bez znalosti YANG modelů a NETCONFu)
 \section{Výsledky z nasazení}
-TODO: no, prej to Honza používá :D
+% TODO: no, prej to Honza používá xD
 
 \begin{conclusion}
-TODO: Něco dopsat sem, asi v závislosti na zbytku
+% TODO: Něco dopsat sem, asi v závislosti na zbytku
 \end{conclusion}
 
 \bibliographystyle{csn690}
