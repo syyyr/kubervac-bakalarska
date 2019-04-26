@@ -1,5 +1,5 @@
 % datum?
-\documentclass[thesis=B,czech]{FITthesis}[2019/03/06]
+\documentclass[thesis=B,czech,hidelinks]{FITthesis}[2019/03/06]
 
 \usepackage[utf8]{inputenc} % LaTeX source encoded as UTF-8
 
@@ -11,8 +11,10 @@
 \usepackage{xspace}
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
+\usepackage[backend=biber,style=iso-numeric,sortlocale=cs_CZ,autolang=other,bibencoding=UTF8]{biblatex}
+\addbibresource{mybibliographyfile.bib}
 
-\hyphenation{NETCONF}
+\hyphenation{NETCONF NETCONFu knihovnu knihovny}
 
 
 \department{Katedra softwarového inženýrství}
@@ -25,75 +27,126 @@
 % TODO: dopsat
 \acknowledgements{Doplňte, máte-li komu a za co děkovat. V~opačném případě úplně odstraňte tento příkaz.}
 % TODO: dopsat
-\abstractCS{V~několika větách shrňte obsah a přínos této práce v~češtině. Po přečtení abstraktu by se čtenář měl mít čtenář dost informací pro rozhodnutí, zda chce Vaši práci číst.}
+\abstractCS{Bakalářská práce se zabývá vytvořením interaktivní konzolové aplikace sloužící ke konfiguraci síťových zařízení pomocí protokolu \textit{NETCONF}. Tento program slouží jako alternativa k dostupným, méně intuitivním, řešením. Toho dosahuje přívětivým uživatelským rozhraním implementovaným pomocí kniho\-vny \textit{replxx}.
+
+Řešení využívá generátorů parserů, které jsou definovány deklarativně, knihovnu \textit{libyang} pro manipulaci s modelovacím jazykem \textit{YANG} a \textit{libnetconf} pro komunikaci přes protokol \textit{NETCONF}.
+}
 % TODO: dopsat
-\abstractEN{Sem doplňte ekvivalent abstraktu Vaší práce v~angličtině.}
+\abstractEN{This thesis focuses on creating an interactive console application with the purpose of configuring network devices over the \textit{NETCONF} protocol. This program serves as an alternative to available, less intuitive solutions. This is achieved mainly by creating a user-friendly interface implemented by the \textit{replxx} library.
+
+The solution uses \textit{Boost Spirit X3} to create parsers defined declaratively, \textit{libyang} library for manipulating the \textit{YANG} modeling language, and \textit{\mbox{libnetconf}} for communication over \textit{NETCONF}.
+}
 \placeForDeclarationOfAuthenticity{V~Praze}
 % TODO: zkontrolovat
 \declarationOfAuthenticityOption{4} %volba Prohlášení (číslo 1-6)
 % TODO: dopsat
-\keywordsCS{Nahraďte seznamem klíčových slov v češtině oddělených čárkou.}
-% TODO: dopsat
-\keywordsEN{Nahraďte seznamem klíčových slov v angličtině oddělených čárkou.}
-% TODO: mám sem hodit link na git?
-% \website{http://site.example/thesis} %volitelná URL práce, objeví se v tiráži - úplně odstraňte, nemáte-li URL práce
+\keywordsCS{netconf, yang, síťová konfigurace, konfigurace, cli, interaktivní cli, parsování}
+\keywordsEN{netconf,yang,network configuration,configuration,cli,interactive cli,parsing}
 
 \begin{document}
 
 \begin{introduction}
-% TODO: krátce napsat, k čemu ten program je
+Ke konfiguraci síťových zařízení existuje mnoho nástrojů. Pro klasického uživatele je nejlepší volba nějakého grafického rozhraní, ve kterém lze nastavit esenciální funkce jako například název nebo zabezpečení bezdrátové sítě. Pro síťové administrátory, kteří musí spravovat mnoho síťových zařízení najednou je ovšem takové řešení nevhodné, protože jej nelze používat v různých administrátorských skriptech apod. Je tedy nutné použít nějakou konzolovou aplikaci. V této práci se snažím implementovat program, který umožní administrátorům jednoduše a intuitivně konfigurovat síťová zařízení.
 
-% TODO: zmínit NETCONF
+Pokud chceme konfigurovat zařízení po síti, je třeba nejprve způsob komunikace se zařízeními standardizovat. \textit{NETCONF} byl vytvořen organizací IETF jako standard pro konfiguraci síťových zařízení. \textit{NETCONF} neřeší způsob reprezentace konfiguračních dat, a proto byl pro tyto potřeby vytvořen modelovací jazyk \textit{YANG}. Více o těchto standardech píši v teoretické části práce.
 
-% TODO: napsat, komu se to hodí (cesnet síťaři) a (krátce) co měli doteď
+V návrhové části práce se věnuji tomu, jakým způsobem lze program používat a rozebírám syntaxi programu.
 
-% TODO: ... a možná že se to bude používat na nějakých zařízeních (zjistit od Honzy, jak to přesně je)
+Přestože je \textit{NETCONF} a \textit{YANG} v této práci klíčový, hlavním důvodem výběru této bakalářské práce je především použití generátoru parserů \textit{Boost Spirit X3}. Aplikace využívá tuto knihovnu k realizaci syntaxe, pomocí které je program ovládán. O \textit{Spiritu} se píše více v implementační části práce.
 \end{introduction}
+\chapter{Cíl práce} % TODO: mergenout s úvodem
+Cílem práce je vytvořit konzolovou aplikaci, pomocí které lze vzdáleně konfigurovat zařízení pomocí protokolu \textit{NETCONF}. Aplikace bude intuitivní, uživatel by ji měl být schopný ovládat i bez detailní znalosti \textit{NETCONFu} nebo konkrétních modelů \textit{YANG}. K ovládání bude sloužit interaktivní mód, kde se uživatel zadává příkazy. Příkazy a jejich argumenty bude možné stiskem klávesy automaticky doplňovat.
 
+\chapter{Teoretická část}
+\section{YANG}
+\textit{YANG}\cite{rfcYang} je jazyk sloužící k modelování konfigurace. Pomocí různých zabudovaných konstruktů lze vybudovat konfigurační strom, který logicky sdružuje různé druhy konfigurace, definuje kde lze jakou hodnotu nastavit, jaké mají datové typy apod. Kromě konfigurace podporuje \textit{YANG} i definování různých procedur. Kódování dat funguje pomocí XML\@.
 
-\chapter{Cíl práce} \todo{Jsou cíle nutné? V podstatě tu jen opisuju zadání\ldots Ideálně bych to mergenul do úvodu nebo tak}
-Cílem práce je vytvořit konzolovou aplikaci, pomocí které lze vzdáleně konfigurovat zařízení pomocí protokolu NETCONF\@. Aplikace bude intuitivní, uživatel by ji měl být schopný ovládat i bez detailní znalosti NETCONF\@. Příkazy a jejich argumenty bude možné stiskem klávesy automaticky doplňovat.
+Následovně definuji některé \textit{YANG} konstrukty, o kterých se zmiňuji v této práci:
+\begin{description}
+    \item[leaf]{neboli \uv{list} je nejnižší úrovní stromu a lze mu nastavovat hodnoty}
+    \item[list]{neboli \uv{seznam} je způsob jak uložit více hodnot stejných parametrů}
+\end{description}
+
+\section{NETCONF}
+\textit{NETCONF}\cite{rfcNetconf} je protokol vytvořený organizací IETF, sloužící ke vzdálené úpravě konfigurace síťových zařízení. Kromě konfigurace lze pomocí \textit{NETCONFu} implementovat zjišťování různých o stavu zařízení nebo se přihlašovat k různým oznámením. Je založen na na architektuře server-klient (můj program implementuje klientskou část). Při komunikaci přes \textit{NETCONF} zasílá klient serveru zprávy prostřednictvím XML-RPC\footnote{protokol založený na značkovacím jazyku XML, umožňující jednoduché volání vzdálených procedur}. Samotné zasílání zpráv na nižší úrovni probíhá přes protokol TLS nebo SSH\@.
+
+Při zahájení komunikace si server i klient vymění \uv{hello} zprávu, ve které deklarují podporované \textit{capabilities}, což jsou definice operací, které dané zařízení podporuje. Základní \textit{NETCONF} podporuje několik typů zpráv. Ty, s kterými pracuje můj program jsou popsány níže.
+
+\subsection{\texttt{<get>}}
+Tato zpráva slouží k získání libovolné části podstromu. To může být konfigurace anebo stavová informace. Server odpovídá zprávou \texttt{<rpc-reply>} s požadovanými daty nebo zprávou \texttt{<rpc-error>} při chybě.
+
+\subsection{\texttt{<get-config>}}
+Tato zpráva se podobá zprávě \texttt{<get>}. Rozdíl je v tom, že pomocí \texttt{<get-config>} lze získat konfiguraci z různých lokací. \textit{NETCONF} podporuje tři druhy konfigurace:
+\begin{description}
+    \item[running]{aktuální platná konfigurace}
+    \item[startup]{startovní konfigurace, která se aplikuje při spuštění zařízení}
+    \item[candidate]{pracovní konfigurace, která může být zkopírována do running konfigurace}
+\end{description}
+
+\subsection{\texttt{<edit-config>}}
+\texttt{<edit-config>} slouží k úpravě konfiguračního stromu na serveru. Klient zašle úpravy ve formě podstromu a vybere jestli chce tuto část sloučit s aktuálním podstromem, smazat, přepsat apod.
 
 
 \chapter{Existující relevantní práce}
-% TODO: Popsat detailněji, co je třeba, aby ten program dělal/uměl (nějaký use-case nebo tak něco) a že to současné programy neumí
-\section{Netopeer2-cli}
-% TODO: Dopsat
-\section{sysrepocfg}
-% TODO: Konkrétně popsat výhody, nevýhody (například, že to nemá nic společného s netconfem xd)
-\section{TODO Mrknout na další programy (ne nutně cesneťácké)}
+V tento moment existuje několik programů implementující klientskou část \textit{NETCONFu}. Jeden z nich je \textit{Netopeer2-cli} napsaná v jazyce C. Pro komunikaci přes \textit{NETCONF} využívá knihovnu \textit{libnetconf}. Výhodou je, že podporuje takřka veškeré konstrukty \textit{NETCONFu} včetně připojení přes TLS a SSH\@. Dalším programem je \textit{netconf-console}. Ta je napsána v Pythonu s pomocí knihovny \textit{ncclient}. Nevýhoda obou těchto aplikací je, že přestože jsou obě schopny konfigurace zařízení, jejich rozhraní není přívětivé jelikož pohlíží na věc z hlediska \textit{NETCONFu} a ne z hlediska toho, co chce uživatel konfigurovat. To v praxi znamená, že uživatel musí znát podrobně různé operace jako například \texttt{<get-config>} apod.
 
 
 \chapter{Návrh}
-% TODO: něco sem možná
-\section{NETCONF a YANG}
-\textit{NETCONF} je protokol sloužící ke vzdálené úpravě konfigurace síťových zařízení. Je založen na XML-RPC\todo{vysvětlivku}. \textit{YANG}\todo{ref na RFC} je jazyk sloužící k modelování konfigurace. Pomocí různých zabudovaných konstruktů lze vybudovat konfigurační strom, který logicky sdružuje různé druhy konfigurace, definuje kde lze jakou hodnotu nastavit, jaké mají datové typy apod. Kromě konfigurace podporuje \textit{YANG} i definování různých procedur, které lze volat pomocí protokolu \textit{NETCONF}.
-% TODO: nějaký příklad YANGu
-
-Více o \textit{YANGu} v kapitole\todo{nějaký ref nebo něco}.
+Program je koncipován jako interaktivní konzolová aplikace. Silnou stránkou konzolových aplikací je možnost použití ve skriptech\footnote{skripty jsou jednoduché programy, používané k definování nějakých scénářů, například \uv{nastav nějaké údaje na nějakém zařízení}}. Uživatel může aplikaci použít jednak interaktivně, napojením terminálu na vstup programu a manuálním zadáváním příkazů, ale také dávkově, uložením příkazů do souboru a vložením tohotu souboru na vstup programu.
 
 
 \section{Syntaxe}
 Základní syntaxe programu vypadá takto:
-% TODO: přidat nějakou syntaxi, něco jako "/> <název příkazu> <přepínače> <argumenty>"
+\begin{verbatim}
+/> <nazev prikazu> <prepinace> <argumenty>
+\end{verbatim}
+K pohybování ve stromu a nastavování hodnot jsem navrhl tyto příkazy:
 
-K pohybování konfiguračním stromem jsem zvolil podobný princip jako při pohybu adresářovou strukturou v počítači. Uživatel prozkoumává strom známými příkazy jako například \textit{cd}, nebo \textit{ls}. K manipulaci s hodnotami slouží například příkazy \textit{get} a \textit{set}.
-
-\begin{description} % TODO: příkazy jen takhle v seznamu nebo pro každej udělat subsection a popsat?
-    \item[TODO]{příkazy}
+\begin{description}
+\item[cd]{přesun kontextu na jiné místo ve stromu}
+\item[ls]{výpis uzlů stromu}
+\item[get]{získání konfigurace ze vzdáleného serveru}
+\item[set]{nastavení hodnoty leafu}
+\item[create]{vytvoření instance listu nebo presence containeru}
+\item[delete]{smazání instance listu nebo presence containeru}
+\item[commit]{potvrzení aktuálních změn konfigurace}
+\item[discard]{zrušení aktuálních změn konfigurace}
 \end{description}
 
-Program je koncipován jako interaktivní konzolová aplikace. Silnou stránkou konzolových aplikací je možnost použití ve skriptech\todo{vysvětlivka?}. Uživatel může aplikaci použít jednak interaktivně, napojením terminálu na vstup programu a manuálním zadáváním příkazů, ale také dávkově, uložením příkazů do souboru a vložením tohotu souboru na vstup programu.
-% TODO: přidat příklad použití (nějakej copy paste z shellu)
+Na obrázku~\ref{ukazka} lze vidět příklad použití příkazů programu pro nastavení hodnotu leafu na \texttt{5}.
+
+\begin{figure}
+\begin{verbatim}
+/> ls
+Possible nodes:
+example-schema:leafInt
+example-schema:leafString
+example-schema:someContainer
+/> cd example-schema:someContainer
+/example-schema:someContainer> ls
+Possible nodes:
+some_leaf
+/> set some_leaf 5
+/> commit
+\end{verbatim}
+\caption{Ukázková práce s programem}\label{ukazka}
+\end{figure}
 
 Aby bylo možné zadávat příkazy intuitivně, nabízí aplikace uživateli různé prostředky pro ulehčení zadávání vstupu, například různé klávesové zkratky pro pohyb v zadávaném textu, automatické doplňování stiskem tabulátoru (nebo jiné klávesové zkratky) a ukládání historie zadaných příkazů.
+
+
+K pohybování konfiguračním stromem jsem zvolil podobný princip jako při pohybu adresářovou strukturou v počítači. Uživatel prozkoumává strom známými příkazy jako například \textit{cd}, nebo \textit{ls}. K manipulaci s hodnotami slouží například příkazy \textit{get} a \textit{set}.
 
 
 \chapter{Implementace}
 % TODO: dopsat něco o použitém jazyku a proč zrovna C++
 
-\section{Součásti programu}
-% TODO: obrázek kudy jdou data; pracovní cyklus programu (nějaký vývoják input -> parser -> interpreter...)
+\section{Fungování programu a jeho součásti}
+Na obrázku~\ref{proud-dat} lze vidět, jak proudí data v programu. V následující části popisuji součásti aplikace, kterými data proudí.
+\begin{figure}
+\includegraphics[width=.9\textwidth]{diagram}
+\caption{Diagram proudu dat v programu}\label{proud-dat}
+\end{figure}
 
 \subsection{Uživatelské rozhraní}
 Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá řádky uživatelského vstupu a zpracovává je. K interaktivnímu používání aplikace, je nutné implementovat nějaký způsob editace příkazové řádky. To zahrnuje především:
@@ -115,7 +168,7 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 % TODO: intro o vstupu
 % TODO: ukázat gramatiky
 
-Ke zpracování gramatik příkazů je potřeba parser\todo{vysvětlivka}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě doporučení \todo{V podstatě jsem ji použil jen tak, bez zvážení, na základě Honzy} jsem použil knihovnu \textit{Boost Spirit X3}. Jednou z hlavních výhod knihovny \textit{Spirit} je, že gramatiky lze zádavat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů. To znamená, že není potřeba spouštět žádný preprocesor\todo{vysvětlivka}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
+Ke zpracování gramatik příkazů je potřeba parser\footnote{česky syntaktická analýza; v mém programu část, která převádí textový vstup na strojově čitelný výstup}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě doporučení jsem použil knihovnu \textit{Boost Spirit X3}. Jednou z hlavních výhod knihovny \textit{Spirit} je, že gramatiky lze zádavat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů. To znamená, že není potřeba spouštět žádný preprocesor\footnote{program který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu. Mimo to, výstup \textit{Spiritu} je přímo ve formě struktur \Cpp{}, takže není třeba výstupy parseru manuálně vytvářet. To ale s sebou nese jistou nevýhodu a tou je, že parser je taková černá skříňka, která špatně debuguje.
 % TODO: Ukázka gramatiky napsané pomocí Spiritu
 % TODO: dopsat gramatiky na základě datového modelu
 
@@ -124,10 +177,15 @@ Ke zpracování gramatik příkazů je potřeba parser\todo{vysvětlivka}. Imple
 % TODO: ukázat libyang
 
 \subsection{Interpreter}
-% TODO: dopsat (vezme user input a zavolá metody/funkce...)
+Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
 
 \subsection{DatastoreAccess}
-% TODO: dopsat (abstraktní rozhraní pro přístup do datastoru...)
+\subsection{Přístup k úložišti konfigurace}
+K vykonávání příkazů potřebuje interpreter přístup k datovému úložišti. Toto je implementováno pomocí abstraktního rozhraní \texttt{DatastoreAccess}. Tato součást obsahuje procedury k nastavování leafů na různé hodnoty a jiné metody na změnu konfigurace. V mé aplikaci budou implementována tato konkrétní rozhraní:
+\begin{description}
+    \item[NetconfAccess]{Třída implementující komunikaci pomocí \textit{NETCONF} s využitím knihovny \textit{libnetconf}}
+\item[SysrepoAccess]{Třída implementující komunikaci se \textit{Sysrepo}\footnote{program, který používá \textit{Netopeer2} server pro ukládání dat} démonem}
+\end{description}
 
 \subsubsection{NetconfAccess}
 % TODO: ukázat libnetconf2
@@ -156,8 +214,7 @@ Ke zpracování gramatik příkazů je potřeba parser\todo{vysvětlivka}. Imple
 % TODO: Něco dopsat sem, asi v závislosti na zbytku
 \end{conclusion}
 
-\bibliographystyle{csn690}
-\bibliography{mybibliographyfile}
+\printbibliography{}
 
 \appendix
 
