@@ -54,18 +54,47 @@ Hlavním důvodem výběru této bakalářské práce je především použití 
 \end{introduction}
 
 \chapter{Teoretická část}
+V rámci práce se věnuji různým klíčovým technologiím a pojmům. V této kapitole vysvětluji použité standardy a teorii formálních jazyků, která mi pomáhá s vytvářením parserů.
+
+
 \section{YANG}
 \textit{YANG} je jazyk sloužící k modelování konfigurace. Pomocí různých zabudovaných konstruktů lze vybudovat konfigurační strom, který logicky sdružuje různé druhy konfigurace, definuje, kde lze jakou hodnotu nastavit, jaké mají hodnoty datové typy apod. Kromě konfigurace podporuje \textit{YANG} i definování různých procedur. Kódování dat funguje pomocí XML\footnote{Extensible Markup Language; značkovací jazyk sloužící především k ukládání a přenosu dat}\@.
 
-Následovně definuji některé \textit{YANG} konstrukty, o kterých se zmiňuji v této práci:
-\begin{description}
-    \item[container]{neboli \uv{kontejner} sdružuje ostatní prvky}
-    \item[leaf]{neboli \uv{list} je nejnižší úrovní stromu a lze mu nastavovat hodnoty}
-    \item[list]{neboli \uv{seznam} je způsob jak uložit více hodnot stejných parametrů}
-\end{description}
+\textit{YANG} definuje konfigurační modely pomocí tzv. \textit{modulů}. Modul je nejvrchnější složkou konfigurace a vše ostatní se definuje v něm. \textit{YANG} podporuje mnoho způsobů jakým způsobem definovat, jak má konfigurace vypadat. Na obrázku~\ref{yang_ukazka} lze vidět syntaxi \textit{YANGu} s některými základními definicemi\footnote{slovo \uv{definice} používám jako náhradu anglického slova \uv{statement}}.
+
+Definice jsou dvou druhů: do některých lze vnořovat další definice (do složených závorek) a některých ne (ty končí středníkem). Dále lze definice rozdělit podle toho, jestli definují nový uzel, nebo parametry aktuálního uzlu. Nový uzel lze vytvořit pomocí \texttt{<typ~uzlu>~<název~uzlu>}. Název musí být jednoznačný. Definice se středníkem vypadají podobně. Dále popisuji, co znamenají definice z ukázky~\ref{yang_ukazka}\footnote{ačkoli lze jednotlivé názvy přeložit do češtiny, budu používat anglická označení, aby nedošlo k záměně některých termínů (list -- leaf, list -- seznam)}.
+
+\begin{figure}
+\begin{verbatim}
+module example-schema {
+    prefix ex;
+    namespace "http://example.com";
+
+    leaf leafInt {
+        type int32;
+    }
+    container containerWithALeaf {
+        leaf leafString {
+            type string;
+        }
+    }
+    list aList {
+       key "name";
+       unique "ip port";
+       leaf name {
+         type string;
+       }
+    }
+}
+\end{verbatim}
+\caption{Ukázkový \textit{YANG} modul}\label{yang_ukazka}
+\end{figure}
+\subsection{\texttt{module}}
+Kořen konfiguračního stromu je \textit{module}. Označuje jednotný celek a ostatní je definováno v něm. V ukázce~\ref{yang_ukazka} jsou vidět jeho požadované definice. Jedna z nich je \texttt{namespace}, což je 
+
 
 \section{NETCONF}
-\textit{NETCONF} je protokol vytvořený organizací IETF, sloužící ke vzdálené úpravě konfigurace síťových zařízení. Kromě konfigurace lze pomocí \textit{NETCONFu} implementovat zjišťování různých informací o stavu zařízení nebo se přihlašovat k různým oznámením. Je založen na na architektuře server-klient (tato práce se zabývá implementací klientské části). Při komunikaci přes \textit{NETCONF} zasílá klient serveru zprávy prostřednictvím XML-RPC\footnote{protokol založený na značkovacím jazyku XML, umožňující jednoduché volání vzdálených procedur}. Samotné zasílání zpráv na nižší úrovni probíhá přes protokol TLS nebo SSH -- protokoly umožňující vytváření šifrovaých spojení po síti.
+\textit{NETCONF} je protokol vytvořený organizací IETF, sloužící ke vzdálené úpravě konfigurace síťových zařízení. Kromě konfigurace lze pomocí \textit{NETCONFu} implementovat zjišťování různých informací o stavu zařízení nebo se přihlašovat k různým oznámením. Je založen na architektuře server-klient (tato práce se zabývá implementací klientské části). Při komunikaci přes \textit{NETCONF} zasílá klient serveru zprávy prostřednictvím XML-RPC\footnote{protokol založený na značkovacím jazyku XML, umožňující jednoduché volání vzdálených procedur}. Samotné zasílání zpráv na nižší úrovni probíhá přes protokol TLS nebo SSH -- protokoly umožňující vytváření šifrovaých spojení po síti.
 
 Při zahájení komunikace si server i klient vymění \uv{hello} zprávu, ve které deklarují podporované \textit{capabilities} -- definice operací, které dané zařízení podporuje. Základní \textit{NETCONF} podporuje několik typů operací. Dále jsou popsány ty, kterými se zabývám.
 
