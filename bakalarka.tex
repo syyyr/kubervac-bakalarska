@@ -10,6 +10,11 @@
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
 \usepackage[backend=biber,style=iso-numeric,sortlocale=cs_CZ,autolang=other,bibencoding=UTF8]{biblatex}
+\usepackage[outputdir=build]{minted}
+\renewcommand{\listingscaption}{Ukázka zdrojového kódu} %místo Listing ve výpisu bude Výpis kódu
+\renewcommand{\listoflistingscaption}{Seznam ukázek zdrojového kódu} %místo List of Listings vypíšeme Seznam výpisů kódu
+\counterwithin{listing}{chapter} %číslování prostředí listing v rámci kapitol
+
 \addbibresource{mybibliographyfile.bib}
 
 \hyphenation{NETCONF NETCONFu knihovnu knihovny}
@@ -122,6 +127,9 @@ Tato zpráva se podobá zprávě \texttt{<get>}. Rozdíl je v tom, že pomocí \
 \subsection{\texttt{<edit-config>}}
 \texttt{<edit-config>} slouží k úpravě konfiguračního stromu na serveru. Klient zašle úpravy ve formě podstromu a vybere, jestli chce tuto část sloučit s aktuálním podstromem, smazat, přepsat apod.
 
+\section{Teorie formálních jazyků}
+% TODO: write this
+
 
 \chapter{Existující relevantní práce}
 V tento moment existuje několik programů implementující klientskou část \textit{NETCONFu}. Jeden z nich je \textit{Netopeer2-cli}\,\cite{netopeer} napsaná v jazyce C. Pro komunikaci přes \textit{NETCONF} využívá knihovnu \textit{libnetconf}\,\cite{libnetconf}. Výhodou je, že podporuje takřka veškeré konstrukty \textit{NETCONFu} včetně připojení přes TLS a SSH\@. Dalším programem je \textit{netconf-console}\,\cite{netconf-console}. Ta je napsána v programovacím jazyku Python s pomocí knihovny \textit{ncclient}\,\cite{ncclient}.
@@ -151,7 +159,7 @@ K pohybování ve stromu a nastavování hodnot jsem navrhl tyto příkazy:
 \item[discard]{zrušení aktuálních změn konfigurace}
 \end{description}
 
-\begin{figure}
+\begin{listing}
 \begin{verbatim}
 /> ls
 Possible nodes:
@@ -165,8 +173,8 @@ some_leaf
 /> set some_leaf 5
 /> commit
 \end{verbatim}
-\caption{Ukázková práce s programem -- nastavení leafu na hodnotu 5}\label{ukazka}
-\end{figure}
+\caption{Ukázková práce s programem}\label{ukazka}
+\end{listing}
 
 Aby bylo možné zadávat příkazy intuitivně, nabízí aplikace uživateli různé prostředky pro ulehčení zadávání vstupu, například různé klávesové zkratky pro pohyb v zadávaném textu, automatické doplňování stiskem tabulátoru (nebo jiné klávesové zkratky) a ukládání historie zadaných příkazů.
 
@@ -207,14 +215,41 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 % TODO: intro o vstupu
 % TODO: ukázat gramatiky
 
-Ke zpracování gramatik příkazů je potřeba parser\footnote{česky syntaktická analýza; v mém programu část, která převádí textový vstup na strojově čitelný výstup}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
+Ke zpracování gramatik příkazů je potřeba parser\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
-Jednou z hlavních výhod knihovny \textit{Spirit} je, že gramatiky lze zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů. To znamená, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu. Mimo to, výstup \textit{Spiritu} je přímo ve formě struktur \Cpp{}, takže není třeba tyto struktury manuálně vytvářet. To ale s sebou nese jistou nevýhodu a tou je, že vygenerovaný parser je taková černá skříňka, v které se špatně odchytávají chyby.
-% TODO: Ukázka gramatiky napsané pomocí Spiritu
-% TODO: dopsat gramatiky na základě datového modelu
+Jednou z hlavních výhod knihovny \textit{Spirit} je, že lze gramatiky zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.}. Jednou z výhod \Cpp{} je, že operátory lze předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Výhoda tohoto je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
+
+Na ukázce~\ref{spirit-grammar} je možné vidět způsob, jakým se ve \textit{Spiritu} zapisují gramatiky, v tomto případě to je gramatika, která parsuje řetězec mezi uvozovkami. Samotné pravidlo \verb|'\"'| řiká, že pravidlo nejprve parsuje jednu uvozovku. Operátor \verb|>>| značí sekvenci pravidel za sebou. \verb|char_-'"'| znamená, že chceme parsenout jakýkoliv znak kromě uvozovky, a celé toto pravidlo je ještě obaleno operátorem \verb|+|, který celé vnitřní pravidlo zopakuje jednou až nekonečně krát. Na konci zbývá už jen pravidlo, které opět parsuje jednu uvozovku. Ve \textit{Spiritu} je každé takové pravidlo zároveň novým neterminálem a lze jej používat v jiných pravidlech. Gramatika v ukázce~\ref{spirit-nonterminals} parsuje právě dva uvozené řetězce, tak jak udává pravidlo \texttt{quotedValue}.
+
+\begin{listing}
+\begin{minted}{c++}
+auto const quotedValue = '"' >> +(char_-'"') >> '"';
+\end{minted}
+\caption{Příklad gramatiky napsané ve \textit{Spiritu}}\label{spirit-grammar}
+\end{listing}
+
+\begin{listing}
+\begin{minted}{c++}
+auto const twoQuotedValues = quotedValue >> quotedValue;
+\end{minted}
+\caption{Skládání gramatik ve \textit{Spiritu}}\label{spirit-nonterminals}
+\end{listing}
+
+Abychom mohli s vyparsovaným daty pracovat, je třeba je uložit do proměnných. K tomu ve \textit{Spiritu} slouží tzv.\ atributy pravidel. Atribut si lze představit jako datový typ návratových hodnot funkcí. Každé pravidlo má buď atribut \texttt{unused} (\uv{nevrací}\footnote{\uv{vracením} je myšleno jaký atribut má dané pravidlo} nic), anebo některý z datových typů jazyka \Cpp{}. Příkladem může být jednoduché pravidlo \verb|int_|, které parsuje celé číslo a jeho atribut je datový typ \texttt{int}.
+
+Pravidla ovšem nemusí vracet pouze primitivní datové typy, ale také celé datové struktury. Například pravidlo \verb|+(char_-'"')| v ukázce~\ref{spirit-grammar} řetězci (jednomu až mnoho znakům za sebou), a pro řetězce \textit{Spirit} určí datový typ \texttt{std::string}. Pravidlo v druhé ukázce~\ref{spirit-nonterminals} odpovídá parsování dovu řetězců za sebou. V tomto případě již \textit{Spirit} neumí odhadnout, jaký návratový typ očekáváme, a musíme ho zadat manuálně. V našem případě chceme uložit oba dva řetězce do dvou různých proměnných a ty sdružíme do \Cpp{} struktury, kterou můžeme vidět na ukázce~\ref{spirit-struct}. Tato struktura je s pravidlem kombatibilní, tzn.\ lze do ní uložit návratovou hodnotu tohoto pravidla.
+
+\begin{listing}
+\begin{minted}{c++}
+struct TwoStrings {
+    std::string firstString;
+    std::string secondString;
+}
+\end{minted}
+\caption{Kompatibilní struktura}\label{spirit-struct}
+\end{listing}
 
 
-% TODO: ukázat Boost Spirit
 % TODO: ukázat libyang
 
 \subsection{Interpreter}
