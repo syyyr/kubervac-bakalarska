@@ -70,13 +70,16 @@ module example-schema {
     prefix ex;
     namespace "http://example.com";
 
-    leaf leafInt {
-        type int32;
-    }
-    container containerWithALeaf {
-        leaf leafString {
+    container ip_adress {
+        leaf ip {
             type string;
         }
+        leaf mask {
+            type string;
+        }
+    }
+    leaf leafInt {
+        type int32;
     }
     list aList {
        key "name";
@@ -90,7 +93,14 @@ module example-schema {
 \caption{Ukázkový \textit{YANG} modul}\label{yang_ukazka}
 \end{figure}
 \subsection{\texttt{module}}
-Kořen konfiguračního stromu je \textit{module}. Označuje jednotný celek a ostatní je definováno v něm. V ukázce~\ref{yang_ukazka} jsou vidět jeho požadované definice. Jedna z nich je \texttt{namespace}, což je 
+Kořen konfiguračního stromu je \textit{module}. Označuje jednotný celek a ostatní je definováno v něm. V ukázce~\ref{yang_ukazka} jsou vidět jeho požadované definice. Jedna z nich je \texttt{namespace}, což je konstrukt jazyka XML, a druhá je \texttt{prefix}, která umožňuje nastavit zkratku, kterou můžeme následovně použít k odkazu na tento modul.
+
+\subsection{\texttt{leaf}}
+\texttt{Leaf} slouží k nastavování samotných hodnot konfigurace. Jeho jedinou povinnou definice je \texttt{type}, která určuje jaký datový typ bude hodnota mít. Typů existuje mnoho, od základních jako řetězec nebo celé číslo, až po složitější jako například leafref, jehož hodnota (a datový typ) závisí na hodnotě jiného \texttt{leafu}.
+\subsection{\texttt{container}}
+\texttt{Container} je základní prostředek pro sdružování konfigurace do logických celků. V ukázce~\ref{yang_ukazka} můžeme vidět sdružení \texttt{leafů} s názvy \texttt{ip} a \texttt{mask} pod jeden logický celek \texttt{ip-address}.
+\subsection{\texttt{list}}
+\texttt{List} slouží podobně jako \texttt{container} ke sdružování dat, nicméně \texttt{list} může existovat ve více instancích najednou. Tyto instance se rozlišují pomocí klíče, což je hodnota nějakého \texttt{leafu} uvnitř daného \texttt{listu}. Klíč se definuje pomocí definice \texttt{key} a může jich být i více (instance je poté definovaná pomocí obou klíčů zároveň).
 
 
 \section{NETCONF}
