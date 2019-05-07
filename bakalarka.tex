@@ -67,7 +67,7 @@ V rámci práce se věnuji různým klíčovým technologiím a pojmům. V této
 
 \textit{YANG} definuje konfigurační modely pomocí tzv. \textit{modulů}. Modul je nejvrchnější složkou konfigurace a vše ostatní se definuje v něm. \textit{YANG} podporuje mnoho způsobů jakým způsobem definovat, jak má konfigurace vypadat. Na obrázku~\ref{yang_ukazka} lze vidět syntaxi \textit{YANGu} s některými základními definicemi\footnote{slovo \uv{definice} používám jako náhradu anglického slova \uv{statement}}.
 
-Definice jsou dvou druhů: do některých lze vnořovat další definice (do složených závorek) a některých ne (ty končí středníkem). Dále lze definice rozdělit podle toho, jestli definují nový uzel, nebo parametry aktuálního uzlu. Nový uzel lze vytvořit pomocí \texttt{<typ~uzlu>~<název~uzlu>}. Název musí být jednoznačný. Definice se středníkem vypadají podobně. Dále popisuji, co znamenají definice z ukázky~\ref{yang_ukazka}\footnote{ačkoli lze jednotlivé názvy přeložit do češtiny, budu používat anglická označení, aby nedošlo k záměně některých termínů (list -- leaf, list -- seznam)}.
+Definice jsou dvou druhů: do některých lze vnořovat další definice (do složených závorek) a některých ne (ty končí středníkem). Dále lze definice rozdělit podle toho, jestli definují nový uzel, nebo parametry aktuálního uzlu. Nový uzel lze vytvořit pomocí \texttt{<typ~uzlu>~<název~uzlu>}. Název musí být jednoznačný. Definice se středníkem vypadají podobně. Dále popisuji, co znamenají definice z ukázky~\ref{yang_ukazka}.\footnote{ačkoli lze jednotlivé názvy přeložit do češtiny, budu používat anglická označení, aby nedošlo k záměně některých termínů (list -- leaf, list -- seznam)}
 
 \begin{figure}
 \begin{verbatim}
@@ -109,7 +109,7 @@ Kořen konfiguračního stromu je \textit{module}. Označuje jednotný celek a o
 
 
 \section{NETCONF}
-\textit{NETCONF} je protokol vytvořený organizací IETF, sloužící ke vzdálené úpravě konfigurace síťových zařízení. Kromě konfigurace lze pomocí \textit{NETCONFu} implementovat zjišťování různých informací o stavu zařízení nebo se přihlašovat k různým oznámením. Je založen na architektuře server-klient (tato práce se zabývá implementací klientské části). Při komunikaci přes \textit{NETCONF} zasílá klient serveru zprávy prostřednictvím XML-RPC\footnote{protokol založený na značkovacím jazyku XML, umožňující jednoduché volání vzdálených procedur}. Samotné zasílání zpráv na nižší úrovni probíhá přes protokol TLS nebo SSH -- protokoly umožňující vytváření šifrovaých spojení po síti.
+\textit{NETCONF} je protokol vytvořený organizací IETF, sloužící ke vzdálené úpravě konfigurace síťových zařízení. Kromě konfigurace lze pomocí \textit{NETCONFu} implementovat zjišťování různých informací o stavu zařízení nebo se přihlašovat k různým oznámením. Je založen na architektuře server-klient (tato práce se zabývá implementací klientské části). Při komunikaci přes \textit{NETCONF} zasílá klient serveru zprávy prostřednictvím XML-RPC.\footnote{protokol založený na značkovacím jazyku XML, umožňující jednoduché volání vzdálených procedur} Samotné zasílání zpráv na nižší úrovni probíhá přes protokol TLS nebo SSH -- protokoly umožňující vytváření šifrovaých spojení po síti.
 
 Při zahájení komunikace si server i klient vymění \uv{hello} zprávu, ve které deklarují podporované \textit{capabilities} -- definice operací, které dané zařízení podporuje. Základní \textit{NETCONF} podporuje několik typů operací. Dále jsou popsány ty, kterými se zabývám.
 
@@ -207,7 +207,7 @@ Ideální knihovna by měla mít nativní \Cpp{} rozhraní (ačkoliv lze v \Cpp{
 
 Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}\,\cite{readline}. \textit{Readline} umožňuje editaci příkazové řádky pomocí mnoha klávesových zkratek, převzatých z textových editorů \textit{EMACS} a \textit{Vi} a také velmi intuitivní inkrementální automatické doplňování (tj.\ postupné doplňování vícenásobným stisknutím klávesové zkratky). Nicméně, vzhledem k tomu, že je již poměrně zastaralá, má pouze rozhraní v jazyce C, tudíž to není dobrá volba pro moji aplikaci. Další nevýhodou je její implementace: \textit{Readline} obsahuje přibližně 20 tisíc řádek kódu především kvůli kompatibilitě s mnoha emulátory terminálů. V dnešní době většina terminálových aplikací podporuje základní VT100\footnote{druh terminálu} escape sekvence\footnote{kontrolní znaky, které slouží k ovládání terminálu; například mazání znaků nebo pohyb kurzorem} a tudíž není třeba zastaralé terminály podporovat.\cite{linenoise-readme}
 
-Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} z hlediska velikosti zdrojového kódu velmi malá -- obsahuje zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální). Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
+Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} z hlediska velikosti zdrojového kódu velmi malá -- obsahuje zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} je napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální). Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
 
 % TODO: ukázat docopt.cpp (Ale někde jinde)
 
@@ -215,13 +215,13 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 % TODO: intro o vstupu
 % TODO: ukázat gramatiky
 
-Ke zpracování gramatik příkazů je potřeba parser\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
+Ke zpracování gramatik příkazů je potřeba parser.\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup} Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
 \subsection{\textit{Boost Spirit X3}}
-\textit{Boost Spirit X3} je knihovna určená k vytváření parserů v jazyce \Cpp{}. Je součástí sady knihoven \textit{Boost}. Jednou z hlavních výhod \textit{Spiritu} je, že lze gramatiky zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.} a \Cpp{} šablon. \Cpp{} umožňuje operátory předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Důsledek tohoto je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
+\textit{Boost Spirit X3} je knihovna určená k vytváření parserů v jazyce \Cpp{}. Je součástí sady knihoven \textit{Boost}. Jednou z hlavních výhod \textit{Spiritu} je, že lze gramatiky zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.} a \Cpp{} šablon. \Cpp{} umožňuje operátory předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Důsledkem tohoto je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
 
 \subsection{Základní pravidla}
-\textit{Spirit} generuje parsery pomocí pravidel. Základními stavebními bloky jsou pravidla pro terminály. Příkladem může být pravidlo \verb¨int_¨, které parsuje jedno celé číslo, nebo \verb¨char_¨, které parsuje právě jeden znak. Kromě těchto pravidel, \textit{Spirit} definuje i složitější elementární pravidla jako třeba \texttt{alpha}, které slouží k parsování znaků abecedy nebo \texttt{digit}, které parsuje číslici. K parsování právě jedno druhu znaku lze použít zápis znaku v \Cpp{} (\verb¨'a'¨).
+\textit{Spirit} generuje parsery pomocí pravidel. Základními stavebními bloky jsou pravidla pro terminály. Příkladem může být pravidlo \verb¨int_¨, které parsuje jedno celé číslo, nebo \verb¨char_¨, které parsuje právě jeden znak. Kromě těchto pravidel, \textit{Spirit} definuje i složitější elementární pravidla jako třeba \texttt{alpha}, které slouží k parsování znaků abecedy nebo \texttt{digit}, které parsuje číslici. K parsování právě jedno druhu znaku lze použít zápis znaku v \Cpp{} (například \verb¨'a'¨).
 
 \subsection{Operátory}
 Ke skládání pravidel ve \textit{Spiritu} slouží \Cpp{} operátory. Operátory lze různě kombinovat a zároveň funguje změna precedence operátorů pomocí závorek. Nyní popíšu funkci těch operátorů, které se v práci vyskytují.
@@ -235,10 +235,10 @@ Ke skládání pravidel ve \textit{Spiritu} slouží \Cpp{} operátory. Operáto
 \end{description}
 
 \subsection{Definice pravidel ve \textit{Spiritu}}
-Definovat pravidla lze dvěma způsoby. Jeden z nich je pomocí tzv.\ \texttt{auto} pravidel \texttt{auto} pravidla využívají \textit{type inference}, což je funkce \Cpp{}, která automaticky zjistí, o jaký typ proměnné se jedná a uživatel ho nemusí zadávat manuálně. Například deklaraci \verb¨auto a = 0;¨ automaticky vyhodnotí, že datový typ proměnně \texttt{a} by měl být \texttt{int}. Vzhledem k tomu, že datový typ pravidel je takřka nemožné určit manuálně (název datového typu složitějších pravidel může mít kvůli šablonám i tísice znaků), je tedy klíčové slovo \texttt{auto} téměř nezbytné. \texttt{auto} pravidla lze vidět na ukázkách~\ref{spirit-grammar}~a~\ref{spirit-nonterminals}. Pro jednoduché parsery často \texttt{auto} pravidla stačí. Pro složitější parsery je třeba použít pokročilou formu definice pravidel, o které se zmiňuji v kapitole~\ref{advanced-rules}.
+Definovat pravidla lze dvěma způsoby. Jeden z nich je pomocí tzv.\ \texttt{auto} pravidel \texttt{auto} pravidla využívají \textit{type inference}, což je funkce \Cpp{}, která automaticky zjistí, o jaký typ proměnné se jedná a uživatel ho nemusí zadávat manuálně. Například deklarace \verb¨auto a = 0;¨ automaticky vyhodnotí, že datový typ proměnně \texttt{a} by měl být \texttt{int}. Vzhledem k tomu, že datový typ pravidel je takřka nemožné určit manuálně (název datového typu složitějších pravidel může mít kvůli šablonám i tísice znaků), je tedy klíčové slovo \texttt{auto} téměř nezbytné. \texttt{auto} pravidla lze vidět na ukázkách~\ref{spirit-grammar}~a~\ref{spirit-nonterminals}. Pro jednoduché parsery často \texttt{auto} pravidla stačí. Pro složitější parsery je třeba použít pokročilou formu definice pravidel, o které se zmiňuji v kapitole~\ref{advanced-rules}.
 
 \subsection{Srovnání zápisu v EBNF a ve \textit{Spiritu}}
-K zápisu gramatik používá \textit{Spirit} syntaxi, která se podobá syntaxi EBNF\footnote{Extended Backus--Naur form}. Rozdíl spočívá především v operátorech, které nemají v \Cpp{} postfixovou variantu, jako například operátor plus (\texttt{+}) nebo operátor násobení (\texttt{*}). V těchto případech je použita prefixová varianta operátoru. V ukázce~\ref{ebnf} je vidět EBNF gramatika, která odpovídá dvěma řetězcům, které jsou obalené uvozovkami.
+K zápisu gramatik používá \textit{Spirit} syntaxi, která se podobá syntaxi EBNF.\footnote{Extended Backus--Naur form} Rozdíl spočívá především v operátorech, které nemají v \Cpp{} postfixovou variantu, jako například operátor plus (\texttt{+}) nebo operátor násobení (\texttt{*}). V těchto případech je použita prefixová varianta operátoru. V ukázce~\ref{ebnf} je vidět EBNF gramatika, která odpovídá dvěma řetězcům, které jsou obalené uvozovkami.
 
 \begin{listing}
 \begin{verbatim}
@@ -267,7 +267,7 @@ auto const twoQuotedValues = quotedValue >> quotedValue;
 
 
 \subsection{Ukládání dat}
-Abychom mohli s daty, které získá parser pracovat, je třeba je uložit do proměnných. K tomu ve \textit{Spiritu} slouží tzv.\ atributy pravidel. Atribut si lze představit jako datový typ návratových hodnot funkcí. Každé pravidlo má buď atribut \texttt{unused} (\uv{nevrací}\footnote{\uv{vracením} je myšleno jaký atribut má dané pravidlo} nic), anebo některý z datových typů jazyka \Cpp{}. Příkladem může být jednoduché pravidlo \verb¨int_¨, které parsuje celé číslo a jeho atribut je datový typ \texttt{int}.
+Abychom mohli pracovat s daty, které parser získá, je třeba je uložit do proměnných. K tomu ve \textit{Spiritu} slouží tzv.\ atributy pravidel. Atribut si lze představit jako datový typ návratových hodnot funkcí. Každé pravidlo má buď atribut \texttt{unused} (nevrací\footnote{\uv{vracením} je myšleno jaký atribut pravidlo vystavuje} nic), anebo některý z datových typů jazyka \Cpp{}. Příkladem může být jednoduché pravidlo \verb¨int_¨, které parsuje celé číslo a jeho atribut je datový typ \texttt{int}.
 
 Pravidla ovšem nemusí vracet pouze primitivní datové typy, ale také celé datové struktury. Například pravidlo \verb¨+(char_-'"')¨ v ukázce~\ref{spirit-grammar} odpovídá řetězci (jednomu až mnoha znakům za sebou), a pro řetězce \textit{Spirit} určí datový typ \texttt{std::string}. Pravidlo v druhé ukázce~\ref{spirit-nonterminals} odpovídá parsování dovu řetězců za sebou. V tomto případě již \textit{Spirit} neumí odhadnout, jaký návratový typ očekáváme, a musíme ho zadat manuálně. V našem případě chceme uložit oba dva řetězce do dvou různých proměnných a ty sdružíme do \Cpp{} struktury, kterou můžeme vidět na ukázce~\ref{spirit-struct}. Tato struktura je s pravidlem kombatibilní, tzn.\ lze do ní uložit návratovou hodnotu tohoto pravidla.
 
@@ -282,6 +282,65 @@ struct TwoStrings {
 \end{listing}
 
 \subsection{Pokročilá definice pravidel}\label{advanced-rules}
+Pokud chceme kromě gramatiky pravidel i nějaké další parametry, \texttt{auto} pravidla už nestačí. V ukázce~\ref{spirit-advancedrule} je ukázán příklad kompletní definice pravidla. Nejprve definujeme proměnnou typu \texttt{x3::rule}, kterou se budeme na pravidlo odkazovat. První parametr šablony (\texttt{MyClass}) používá \textit{Spirit} iterně k rozlišení pravidel a také slouží k definování různých vedlejších efektů, o kterých píšu v kapitole~\ref{sideeffects}. Druhý parametr šablony slouží k deklaraci atributu pravidla \texttt{TwoStrings}. Dále je třeba definovat gramatiku pravidla. To se dělá pomocí \textit{auto} pravidel, jejichž název končí na \verb¨_def¨. Nakonec je třeba ještě říct \textit{Spiritu} o pravidlu pomocí makra \verb¨BOOST_SPIRIT_DEFINE¨.
+
+\begin{listing}
+\begin{minted}{c++}
+x3::rule<MyClass, TwoStrings> const twoQuotedValues;
+
+auto const quotedValue = '"' >> +(char_-'"') >> '"';
+auto const twoQuotedValues_def = quotedValue >> quotedValue;
+
+BOOST_SPIRIT_DEFINE(twoStrings)
+\end{minted}
+\caption{Kompatibilní struktura}\label{spirit-advancedrule}
+\end{listing}
+
+\subsection{Vedlejší efekty pravidel}\label{sideeffects}
+Ačkoliv lze pomocí \textit{Spiritu} zapsat poměrně složité parsery, ne vždy může být jednoduché vytvořit gramatiku, která by ho generovala. Kvůli tomu \textit{Spirit} umožňuje na určitá místa vkládat kromě deklarativního\footnote{deklarativní kód je kód, kde programátor definuje, co má program udělat, ale ne jakým způsobem; to jsou například gramatiky ve \textit{Spiritu}} kódu i kód imperativní.\footnote{imperativní kód je kód, kde progrmátor určuje přesný postup algoritmu} Jedním ze způsobů, jak přidat imperativní kód je pomocí \uv{sémantických funkcí}. Pomocí operátoru hranaté závorky (\verb¨[]¨) je možné k pravidlu přiřadit volatelný objekt (funkci, lambda funkci nebo funktor) a po úspěšném parsenutí pravidla se objekt zavolá. V ukázce~\ref{spirit-semantic} lze vidět příklad použití. Pokud pravidlo úspěšně parsene číslo, program vypíše \uv{Hello, world!}.
+
+\begin{listing}
+\begin{minted}{c++}
+auto const greeting = [] {
+    std::cout << "Hello, world!" << std::endl;
+};
+auto const rule = int_[greeting];
+\end{minted}
+\caption{Sémantické akce}\label{spirit-semantic}
+\end{listing}
+
+Nevýhodou sémantických akcí je, že jejich používání velmi znepřehledňuje kód gramatik. Z tohoto důvodu existuje druhý způsob, jak přiřadit pravidlům imperativní kód a to pomocí \verb¨on_success¨ procedur. Zde hraje roli první parametr šablony \texttt{x3::rule}. Pokud do třídy, kterou v parametru uvedeme, nadefinujeme metodu \verb¨on_success¨, tato metoda se zavolá pří úspěšném parsenutí pravidla podobným způsobem jako fungují sémantické akce. Výhodou je, že tímto způsobem oddělíme gramatiky od imperativního kódu a gramatiky se stanou čitelnějšími.
+
+V ukázce~\ref{spirit-handler} můžeme vidět příklad jak zapsat třídu s \verb¨on_success¨ metodou. V této metodě máme k dispozici čtyři parametry, které poksytují informace o stavu parseru a také možnosti jak chování parseru ovlivnit:
+\begin{description}
+    \item[begin]{iterátor, který ukazuje, kde parsování začalo}
+    \item[end]{iterátor, který ukazuje, kde parsování skončilo}
+    \item[ast]{reference na atribut, které pravidlo vrací}
+    \item[context]{parametr, pomocí kterého lze ovládat chování parseru}
+\end{description}
+
+\begin{listing}
+\begin{minted}{c++}
+struct greeting {
+    template <typename T, typename Iterator, typename Context>
+    inline void on_success(Iterator const& begin,
+                           Iterator const& end,
+                           T& ast,
+                           Context const& context)
+    {
+        std::cout << "Hello, world!" << std::endl;
+    }
+}
+
+x3::rule<greeting, int> const rule;
+
+auto const rule_def = int_;
+BOOST_SPIRIT_DEFINE(rule)
+\end{minted}
+% I can't use \verb here and underscore only works in math blocks (hence the \symbol) >:(
+\caption{\texttt{on\symbol{95}success} metoda}\label{spirit-handler}
+\end{listing}
+
 
 % TODO: ukázat libyang
 
