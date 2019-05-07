@@ -129,6 +129,7 @@ Tato zpráva se podobá zprávě \texttt{<get>}. Rozdíl je v tom, že pomocí \
 
 \section{Teorie formálních jazyků}
 % TODO: write this
+% TODO: ukázat EBNF
 
 
 \chapter{Existující relevantní práce}
@@ -185,8 +186,7 @@ K pohybování konfiguračním stromem jsem zvolil podobný princip jako při po
 
 \chapter{Implementace}
 % TODO: dopsat něco o použitém jazyku a proč zrovna C++
-
-\section{Fungování programu a jeho součásti}
+% TODO: napsat jaké jsou třídy v programu
 Na obrázku~\ref{proud-dat} lze vidět, jak proudí data v programu. V následující části popisuji součásti aplikace, kterými data proudí.
 \begin{figure}
 \begin{center}
@@ -195,7 +195,7 @@ Na obrázku~\ref{proud-dat} lze vidět, jak proudí data v programu. V následuj
 \caption{Diagram proudu dat v programu}\label{proud-dat}
 \end{figure}
 
-\subsection{Uživatelské rozhraní}
+\section{Uživatelské rozhraní}
 Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá řádky uživatelského vstupu a zpracovává je. K interaktivnímu používání aplikace, je nutné implementovat nějaký způsob editace příkazové řádky. To zahrnuje především:
 \begin{itemize}
     \item možnost úpravy aktuálního obsahu příkazové řádky před odesláním
@@ -205,21 +205,51 @@ Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá �
 \end{itemize}
 Ideální knihovna by měla mít nativní \Cpp{} rozhraní (ačkoliv lze v \Cpp{} relativně jednoduše použít i C knihovny) a být header-only, tedy, že k jejímu použití stačí přidat její hlavičkový soubor a všechny implementační detaily jsou obsaženy v něm.
 
-Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}\todo{ref?}. \textit{Readline} umožňuje editaci příkazové řádky pomocí mnoha klávesových zkratek, převzatých z textových editorů \textit{EMACS} a \textit{Vi} a také velmi intuitivní inkrementální automatické doplňování (tj.\ postupně doplňování vícenásobným stisknutím klávesové zkratky). Nicméně, vzhledem k tomu, že je již poměrně zastaralá, má pouze rozhraní v jazyce C, tudíž to není dobrá volba pro moji aplikaci. Další nevýhodou je její implementace: \textit{Readline} obsahuje přibližně 20 tisíc řádek kódu především kvůli kompatibilitě s mnoha emulátory terminálů. V dnešní době většina terminálových aplikací podporuje základní VT100 escape sekvence\todo{vysvětlivku} a tudíž není třeba zastaralé terminály podporovat.\todo{ref na linenoise readme.md}
+Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}\todo{ref?}. \textit{Readline} umožňuje editaci příkazové řádky pomocí mnoha klávesových zkratek, převzatých z textových editorů \textit{EMACS} a \textit{Vi} a také velmi intuitivní inkrementální automatické doplňování (tj.\ postupné doplňování vícenásobným stisknutím klávesové zkratky). Nicméně, vzhledem k tomu, že je již poměrně zastaralá, má pouze rozhraní v jazyce C, tudíž to není dobrá volba pro moji aplikaci. Další nevýhodou je její implementace: \textit{Readline} obsahuje přibližně 20 tisíc řádek kódu především kvůli kompatibilitě s mnoha emulátory terminálů. V dnešní době většina terminálových aplikací podporuje základní VT100 escape sekvence\todo{vysvětlivku} a tudíž není třeba zastaralé terminály podporovat.\todo{ref na linenoise readme.md}
 
-Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} velmi malá -- má\todo{reword?} zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální).  Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
+Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} velmi malá -- má\todo{reword?} zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální). Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
 
 % TODO: ukázat docopt.cpp (Ale někde jinde)
 
-\subsection{Zpracování vstupu}
+\section{Zpracování vstupu}
 % TODO: intro o vstupu
 % TODO: ukázat gramatiky
 
 Ke zpracování gramatik příkazů je potřeba parser\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup}. Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
-Jednou z hlavních výhod knihovny \textit{Spirit} je, že lze gramatiky zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.}. Jednou z výhod \Cpp{} je, že operátory lze předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Výhoda tohoto je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
+\subsection{\textit{Boost Spirit X3}}
+\textit{Boost Spirit X3} je knihovna určená k vytváření parserů v jazyce \Cpp{}. Je součástí sady knihoven \textit{Boost}. Jednou z hlavních výhod \textit{Spiritu} je, že lze gramatiky zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.} a \Cpp{} šablon. \Cpp{} umožňuje operátory předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Důsledek tohoto je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
 
-Na ukázce~\ref{spirit-grammar} je možné vidět způsob, jakým se ve \textit{Spiritu} zapisují gramatiky, v tomto případě to je gramatika, která parsuje řetězec mezi uvozovkami. Samotné pravidlo \verb|'\"'| řiká, že pravidlo nejprve parsuje jednu uvozovku. Operátor \verb|>>| značí sekvenci pravidel za sebou. \verb|char_-'"'| znamená, že chceme parsenout jakýkoliv znak kromě uvozovky, a celé toto pravidlo je ještě obaleno operátorem \verb|+|, který celé vnitřní pravidlo zopakuje jednou až nekonečně krát. Na konci zbývá už jen pravidlo, které opět parsuje jednu uvozovku. Ve \textit{Spiritu} je každé takové pravidlo zároveň novým neterminálem a lze jej používat v jiných pravidlech. Gramatika v ukázce~\ref{spirit-nonterminals} parsuje právě dva uvozené řetězce, tak jak udává pravidlo \texttt{quotedValue}.
+\subsection{Základní pravidla}
+\textit{Spirit} generuje parsery pomocí pravidel. Základními stavebními bloky jsou pravidla pro terminály. Příkladem může být pravidlo \verb¨int_¨, které parsuje jedno celé číslo, nebo \verb¨char_¨, které parsuje právě jeden znak. Kromě těchto pravidel, \textit{Spirit} definuje i složitější elementární pravidla jako třeba \texttt{alpha}, které slouží k parsování znaků abecedy nebo \texttt{digit}, které parsuje číslici. K parsování právě jedno druhu znaku lze použít zápis znaku v \Cpp{} (\verb¨'a'¨).
+
+\subsection{Operátory}
+Ke skládání pravidel ve \textit{Spiritu} slouží \Cpp{} operátory. Operátory lze různě kombinovat a zároveň funguje změna precedence operátorů pomocí závorek. Nyní popíšu funkci těch operátorů, které se v práci vyskytují.
+\begin{description}
+    \item[operátor \texttt{>>}]{Sekvence. \verb¨char_ >> char_¨ parsuje dva znaky za sebou. V EBNF se zapisuje pomocí čárky (\texttt{,}).}
+    \item[operátor \texttt{*}]{\verb¨*char_¨ parsuje jakýkoliv znak nula až nekonečně krát. V EBNF se pravidlo obaluje složenými závorkami.}
+    \item[operátor \texttt{+}]{\verb¨+char_¨ parsuje jakýkoliv znak jednou až nekonečně krát. V EBNF neexistuje.}
+    \item[operátor \texttt{prefixové -}]{\verb¨-char_¨ parsuje jakýkoliv znak jednou nebo nula krát. V EBNF neexistuje.}
+    \item[operátor \texttt{infixové -}]{\verb¨char_-'a'¨ parsuje jakýkoliv znak kromě znaku \uv{a}. V EBNF se zapisuje stejně.}
+    \item[operátor \texttt{|}]{Alternativa. \verb¨char_ | int_¨ parsuje jakýkoliv znak nebo číslo. V EBNF se zapisuje stejně.}
+\end{description}
+
+\subsection{Definice pravidel ve \textit{Spiritu}}
+Definovat pravidla lze dvěma způsoby. Jeden z nich je pomocí tzv.\ \texttt{auto} pravidel \texttt{auto} pravidla využívají \textit{type inference}, což je funkce \Cpp{}, která automaticky zjistí, o jaký typ proměnné se jedná a uživatel ho nemusí zadávat manuálně. Například deklaraci \verb¨auto a = 0;¨ automaticky vyhodnotí, že datový typ proměnně \texttt{a} by měl být \texttt{int}. Vzhledem k tomu, že datový typ pravidel je takřka nemožné určit manuálně (název datového typu složitějších pravidel může mít kvůli šablonám i tísice znaků), je tedy klíčové slovo \texttt{auto} téměř nezbytné. \texttt{auto} pravidla lze vidět na ukázkách~\ref{spirit-grammar}~a~\ref{spirit-nonterminals}. Pro jednoduché parsery často \texttt{auto} pravidla stačí. Pro složitější parsery je třeba použít pokročilou formu definice pravidel, o které se zmiňuji v kapitole~\ref{advanced-rules}.
+
+\subsection{Srovnání zápisu v EBNF a ve \textit{Spiritu}}
+K zápisu gramatik používá \textit{Spirit} syntaxi, která se podobá syntaxi EBNF\footnote{Extended Backus--Naur form}. Rozdíl spočívá především v operátorech, které nemají v \Cpp{} postfixovou variantu, jako například operátor plus (\texttt{+}) nebo operátor násobení (\texttt{*}). V těchto případech je použita prefixová varianta operátoru. V ukázce~\ref{ebnf} je vidět EBNF gramatika, která odpovídá dvěma řetězcům, které jsou obalené uvozovkami.
+
+\begin{listing}
+\begin{verbatim}
+not-a-quote = ... (* všechny znaky kromě uvozovky *)
+quotedValue = '"' , not-a-quote , {not-a-quote} , '"'
+twoQuotedValues = quotedValue , quotedValue
+\end{verbatim}
+\caption{Příklad EBNF}\label{ebnf}
+\end{listing}
+
+Na ukázce~\ref{spirit-grammar} je možné vidět způsob, jakým by se zapsala gramatika z ukázky~\ref{ebnf} ve \textit{Spiritu}. Samotné pravidlo \verb¨'"'¨ řiká, že pravidlo nejprve parsuje jednu uvozovku. Operátor \verb¨>>¨ značí sekvenci pravidel za sebou. \verb¨char_-'"'¨ znamená, že chceme parsenout jakýkoliv znak kromě uvozovky, a celé toto pravidlo je ještě obaleno operátorem \verb¨+¨, který celé vnitřní pravidlo zopakuje jednou až nekonečně krát (EBNF podporuje pouze nula až nekonečně krát). Na konci zbývá už jen pravidlo, které opět parsuje jednu uvozovku. Ve \textit{Spiritu} je každé takové pravidlo zároveň novým neterminálem a lze jej používat v jiných pravidlech stejně jako v EBNF\@. Gramatika v ukázce~\ref{spirit-nonterminals} parsuje právě dva uvozené řetězce, tak jak udává pravidlo \texttt{quotedValue}.
 
 \begin{listing}
 \begin{minted}{c++}
@@ -235,9 +265,11 @@ auto const twoQuotedValues = quotedValue >> quotedValue;
 \caption{Skládání gramatik ve \textit{Spiritu}}\label{spirit-nonterminals}
 \end{listing}
 
-Abychom mohli s vyparsovaným daty pracovat, je třeba je uložit do proměnných. K tomu ve \textit{Spiritu} slouží tzv.\ atributy pravidel. Atribut si lze představit jako datový typ návratových hodnot funkcí. Každé pravidlo má buď atribut \texttt{unused} (\uv{nevrací}\footnote{\uv{vracením} je myšleno jaký atribut má dané pravidlo} nic), anebo některý z datových typů jazyka \Cpp{}. Příkladem může být jednoduché pravidlo \verb|int_|, které parsuje celé číslo a jeho atribut je datový typ \texttt{int}.
 
-Pravidla ovšem nemusí vracet pouze primitivní datové typy, ale také celé datové struktury. Například pravidlo \verb|+(char_-'"')| v ukázce~\ref{spirit-grammar} řetězci (jednomu až mnoho znakům za sebou), a pro řetězce \textit{Spirit} určí datový typ \texttt{std::string}. Pravidlo v druhé ukázce~\ref{spirit-nonterminals} odpovídá parsování dovu řetězců za sebou. V tomto případě již \textit{Spirit} neumí odhadnout, jaký návratový typ očekáváme, a musíme ho zadat manuálně. V našem případě chceme uložit oba dva řetězce do dvou různých proměnných a ty sdružíme do \Cpp{} struktury, kterou můžeme vidět na ukázce~\ref{spirit-struct}. Tato struktura je s pravidlem kombatibilní, tzn.\ lze do ní uložit návratovou hodnotu tohoto pravidla.
+\subsection{Ukládání dat}
+Abychom mohli s daty, které získá parser pracovat, je třeba je uložit do proměnných. K tomu ve \textit{Spiritu} slouží tzv.\ atributy pravidel. Atribut si lze představit jako datový typ návratových hodnot funkcí. Každé pravidlo má buď atribut \texttt{unused} (\uv{nevrací}\footnote{\uv{vracením} je myšleno jaký atribut má dané pravidlo} nic), anebo některý z datových typů jazyka \Cpp{}. Příkladem může být jednoduché pravidlo \verb¨int_¨, které parsuje celé číslo a jeho atribut je datový typ \texttt{int}.
+
+Pravidla ovšem nemusí vracet pouze primitivní datové typy, ale také celé datové struktury. Například pravidlo \verb¨+(char_-'"')¨ v ukázce~\ref{spirit-grammar} odpovídá řetězci (jednomu až mnoha znakům za sebou), a pro řetězce \textit{Spirit} určí datový typ \texttt{std::string}. Pravidlo v druhé ukázce~\ref{spirit-nonterminals} odpovídá parsování dovu řetězců za sebou. V tomto případě již \textit{Spirit} neumí odhadnout, jaký návratový typ očekáváme, a musíme ho zadat manuálně. V našem případě chceme uložit oba dva řetězce do dvou různých proměnných a ty sdružíme do \Cpp{} struktury, kterou můžeme vidět na ukázce~\ref{spirit-struct}. Tato struktura je s pravidlem kombatibilní, tzn.\ lze do ní uložit návratovou hodnotu tohoto pravidla.
 
 \begin{listing}
 \begin{minted}{c++}
@@ -249,23 +281,24 @@ struct TwoStrings {
 \caption{Kompatibilní struktura}\label{spirit-struct}
 \end{listing}
 
+\subsection{Pokročilá definice pravidel}\label{advanced-rules}
 
 % TODO: ukázat libyang
 
-\subsection{Interpreter}
+\section{Interpreter}
 Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
 
-\subsection{DatastoreAccess}
+\section{DatastoreAccess}
 \subsection{Přístup k úložišti konfigurace}
 K vykonávání příkazů potřebuje interpreter přístup k datovému úložišti. Toto je implementováno pomocí abstraktního rozhraní \texttt{DatastoreAccess}. Tato součást obsahuje procedury k nastavování leafů na různé hodnoty a jiné metody na změnu konfigurace. V mé aplikaci budou implementována tato konkrétní rozhraní:
 
-\subsubsection{NetconfAccess}
+\subsection{NetconfAccess}
 % TODO: ukázat libnetconf2
 
 \subsubsection{SysrepoAccess}
 % TODO: ukázat sysrepo klientskou knihovnu
 
-\subsection{Testování}
+\section{Testování}
 % TODO: ukázat doctest
 % TODO: ukázat trompeloeil
 % TODO: zmínit Catch
