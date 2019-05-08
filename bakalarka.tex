@@ -103,7 +103,7 @@ Kořen konfiguračního stromu je \textit{module}. Označuje jednotný celek a o
 \subsection{\texttt{leaf}}
 \texttt{Leaf} slouží k nastavování samotných hodnot konfigurace. Jeho jedinou povinnou definice je \texttt{type}, která určuje jaký datový typ bude hodnota mít. Typů existuje mnoho, od základních jako řetězec nebo celé číslo, až po složitější jako například leafref, jehož hodnota (a datový typ) závisí na hodnotě jiného \texttt{leafu}.
 \subsection{\texttt{container}}
-\texttt{Container} je základní prostředek pro sdružování konfigurace do logických celků. V ukázce~\ref{yang_ukazka} můžeme vidět sdružení \texttt{leafů} s názvy \texttt{ip} a \texttt{mask} pod jeden logický celek \texttt{ip-address}.
+\texttt{Container} je základní prostředek pro sdružování konfigurace do logických celků. V ukázce~\ref{yang_ukazka} můžeme vidět sdružení \texttt{leafů} s názvy \texttt{ip} a \texttt{mask} pod jeden logický celek \texttt{ip-address}. \texttt{Container} sám od sebe nenese žádným význam pokud ovšem neobsahuje definici \texttt{presence}. V tomto případě se jedná o \texttt{presence container} a jeho přítomnost poté nese význam.
 \subsection{\texttt{list}}
 \texttt{List} slouží podobně jako \texttt{container} ke sdružování dat, nicméně \texttt{list} může existovat ve více instancích najednou. Tyto instance se rozlišují pomocí klíče, což je hodnota nějakého \texttt{leafu} uvnitř daného \texttt{listu}. Klíč se definuje pomocí definice \texttt{key} a může jich být i více (instance je poté definovaná pomocí obou klíčů zároveň).
 
@@ -139,16 +139,41 @@ Nevýhoda obou těchto aplikací je, že přestože jsou obě schopny konfigurac
 
 
 \chapter{Návrh}
-Program, který  je koncipován jako interaktivní konzolová aplikace. Silnou stránkou konzolových aplikací je možnost použití ve skriptech\footnote{skripty jsou jednoduché programy, používané k definování nějakých scénářů, například \uv{nastav nějaké údaje na nějakém zařízení}}. Uživatel může aplikaci použít interaktivně, napojením terminálu na vstup programu a manuálním zadáváním příkazů, ale také dávkově, uložením příkazů do souboru a vložením tohotu souboru na vstup programu.
+V této kapitole se zabývám tím, jak program vypadá, jeho syntaxí a konstrukty, které se v mém programu vyskytují.
+% TODO: co všechno tam je
 
+\section{Koncepce programu}
+Program, který implementuji, je koncipován jako interaktivní konzolová aplikace. Silnou stránkou konzolových aplikací je možnost použití ve skriptech\footnote{skripty jsou jednoduché programy, používané k definování nějakých scénářů, například \uv{nastav nějaké údaje na nějakém zařízení}}. Uživatel může aplikaci použít interaktivně, napojením terminálu na vstup programu a manuálním zadáváním příkazů, ale také dávkově, uložením příkazů do souboru a vložením tohotu souboru na vstup programu.
+
+\section{Adresování stromu}
+Aby se mohl uživatel odkazovat na jednotlivé uzly ve stromu, je nejprve třeba vytvořit nějaký textový zápis, který jednoznačně určuje jeden lokaci jednoho uzlu. K tomuto jsem zvolil podobný způsob jako adresování souborů a adresářů v souborovém systému. Cesta k uzlu je určena výčtem názvů všech uzlů, které je dělí od modulu. Vzhledem k tomu, že modulů může být mnoho, je třeba určit \uv{kontextový} modul, tedy modul, v kterým se nachází první uzel cesty. Toho lze docílit připsáním názvu modulu a dvojtečky před první uzel cesty. Cesta k uzlu \texttt{bar} (nacházející se v uzlu foo) v modulu \texttt{example-schema} z ukázky~\ref{yang-adresace} bude vypadat takto: \texttt{example-schema:foo/bar}. Může se stát, že v nějaké části cesty, budeme chtít kontext změnit, a proto je možné název modulu a dvojtečku připsat ke každému uzlu.\footnote{cesta k \texttt{bar} by tedy mohla vypadat i takto: \texttt{example-schema:foo/example-schema:bar}}
+
+\begin{listing}
+\begin{verbatim}
+module example-schema {
+    prefix ex;
+    namespace "http://example.com";
+
+    container foo {
+        leaf bar {
+            type string;
+        }
+    }
+}
+\end{verbatim}
+\caption{Ukázkový \textit{YANG} modul}\label{yang-adresace}
+\end{listing}
+
+Adresovat lze dvěma způsoby: relativními cestami a absolutními cestami. Relativní cesty se vztahují ke kontextu, v kterém uživatel je. Pokud je aktuální kontext uzel \texttt{example-schema:foo} a chceme adresovat uzel \texttt{bar}, není již třeba v cestě uzel \texttt{foo} zahrnovat a ani není třeba specifikovat kontextový modul. Na druhou stranu, absolutní cesty nedbají na kontext a chovají se, jako kdyby žádný kontext neexistoval. Absolutní cesty se zapisují s lomítkem (\texttt{/}) na začátku.
+
+Dále se cesty rozdělují na schematické a datové. Rozdíl mezi nimi je ten, že pomocí datových cest můžeme adresovat instance uzlů typu \texttt{list}. Instance listu se adresují pomocí jejich klíčů. Syntaxe pro zadání klíčů vypadá takto: \verb¨[název_klice=hodnota]¨. Tímto způsobem postupně vypíšeme všechny hodnoty klíčů požadované instance. Důvodem pro zavedení tohoto rozlišení je, že pro některé příkazy jsou hodnoty klíčů bezvýznamné (například pro to, že nemanipulují s daty).
 
 \section{Syntaxe}
 V této podkapitole se zabývám syntaxí a popisu jednotlivých příkazů. Základní syntaxe programu vypadá takto:
 \begin{verbatim}
 /> <nazev prikazu> <prepinace> <argumenty>
 \end{verbatim}
-K pohybování ve stromu a nastavování hodnot jsem navrhl tyto příkazy:
-
+Pohyb stromem funguje podobně jako při procházení souborovým systémem na počítači. V ukázce~\ref{ukazka-program} je vidět příklad použítí programu. Před napsáním příkazu program vždy vypíše aktuální kontext (uzel). Uživatel může vstupovat do podstromů \textit{YANG} modelů pomocí příkazu \texttt{cd} a prozkoumávat je pomocí příkazu \texttt{ls}. K nastavování a čtení hodnot slouží příkazy \texttt{set}, \texttt{get}, \texttt{create} a \texttt{delete}. K potvrzování, resp.\ zahazování aktuálních změn slouží příkazy \texttt{commit}, resp.\ \texttt{discard}. Zde je stručný popis všech příkazů:
 \begin{description}
 \item[cd]{přesun kontextu na jiné místo ve stromu}
 \item[ls]{výpis uzlů stromu}
@@ -158,7 +183,78 @@ K pohybování ve stromu a nastavování hodnot jsem navrhl tyto příkazy:
 \item[delete]{smazání instance listu nebo presence containeru}
 \item[commit]{potvrzení aktuálních změn konfigurace}
 \item[discard]{zrušení aktuálních změn konfigurace}
+\item[help]{zobrazení nápovědy}
 \end{description}
+
+V následujících kapitolách popíšu každý příkaz detailnějí.
+
+\subsection{cd}
+Příkaz \texttt{cd} slouží k přesouvání kontextu do uzlů stromu. Přesun kontextu může ušetřit práci, protože díky relativním cestám nemusíme u všech příkazů vždy zadávat cestu celou. Syntaxe vypadá následovně:
+\begin{verbatim}
+cd <data-path>
+\end{verbatim}
+Vzhledem k tomu, že příkaz mění kontext, je nutné, aby přijímal datovou cestu. Kontext totiž musí být vždy přesně definován včetně klíčů \texttt{listů} kvůli relativním cestám. Při používání relativních cest by potom nebylo možné sestavit z kontextu cestu pro příkazy, které přijímají pouze datovou cestu. V ukázce~\ref{cd} je možné vidět příklad použití \texttt{cd}.
+
+\begin{listing}
+\begin{verbatim}
+/> cd example-schema:someContainer
+/example-schema:someContainer>
+\end{verbatim}
+\caption{Použití \texttt{cd}}\label{cd}
+\end{listing}
+
+\subsection{ls}
+Příkaz \texttt{ls} slouží k výpisu poduzlů v aktuálním kontextu, tedy například do jakých uzlů se můžeme přesunout pomocí \texttt{cd}. Tento příkaz se hodí, pokud uživatel nezná daný \texttt{YANG} modul podrobně. Syntaxe vypadá následovně:
+\begin{verbatim}
+ls [--recursive] [path]
+\end{verbatim}
+\texttt{ls} implicitně vypisuje poduzlu akutálního uzlu a přijímá dva nepovinné argumenty. Jeden z nich je cesta (schematická nebo datová), která určuje který uzel se bude vypisovat. Druhým argumentem je přepínač \verb¨--recursive¨, pomocí kterého \texttt{ls} rekurzivně vstupuje do poduzlů a vypisuje i jejich poduzly. V ukázce~\ref{ls} je vidět příklad použití \texttt{ls} včetně přepínače \verb¨--recursive¨.
+
+\begin{listing}
+\begin{verbatim}
+/> ls
+example-schema:someContainer
+example-schema:leafInt
+/> ls example-schema:someContainer
+leafInContainer
+/> ls --recursive
+example-schema:someContainer
+example-schema:someContainer/leafInContainer
+example-schema:leafInt
+\end{verbatim}
+\caption{Použití \texttt{ls}}\label{ls}
+\end{listing}
+\subsection{\texttt{get}}
+
+K získání konfigurace ze serveru slouží příkaz \texttt{get}. Syntaxe vypadá následovně:
+\begin{verbatim}
+get [path]
+\end{verbatim}
+\texttt{get} implicitně vypisuje konfiguraci celého aktuálního podstromu. Nepovinný \texttt{path} argument určuje cestu podstromu, z kterého se bude konfigurace vypisovat. Příkaz funguje rekurzivně, tedy při jeho použití se vypíšou všechny poduzly i v nižších úrovních.
+
+\subsection{\texttt{set}}
+Nastavování konfigurace probíhá pomocí příkazu \texttt{set}. Nastavovat lze pouze uzlu typu \texttt{leaf}. Syntaxe vypadá následovně:
+\begin{verbatim}
+set <path> <value>
+\end{verbatim}
+Argument \texttt{path} určuje cestu k \texttt{leafu}, jehož hodnota bude upravena a argument \texttt{value} určuje novou hodnotu \texttt{leafu}. Cesta musí být datová.
+
+\subsection{\texttt{create} a \texttt{delete}}
+Příkazy \texttt{create} a \texttt{delete} slouží k vytváření, resp.\ mazání \texttt{presence containerů} a instancí uzlů typu \texttt{list}. Oba fungují velmi podobně a mají i podobnou syntaxi:
+\begin{verbatim}
+create <path>
+delete <path>
+\end{verbatim}
+Argument \texttt{path} určuje cestu k uzlu, který chceme vytvořit. Cesta musí být datová.
+\subsection{\texttt{commit} a \texttt{discard}}
+Příkazy \texttt{commit} a \texttt{discard} slouží k potvrzení, resp.\ zahození aktuálních změn konfigurace. Nepřijímají řádný argument.
+\subsection{\texttt{help}}
+Příkaz \texttt{help} zobrazuje nápovědu. Jeho syntaxe vypadá takto:
+\begin{verbatim}
+help [command]
+\end{verbatim}
+Nepovinný argument \texttt{command} určuje příkaz, jehož nápověda se má vypsat. Bez argumentu příkaz \texttt{help} vypisuje krátký popis všech příkazů.
+
 
 \begin{listing}
 \begin{verbatim}
@@ -174,13 +270,11 @@ some_leaf
 /> set some_leaf 5
 /> commit
 \end{verbatim}
-\caption{Ukázková práce s programem}\label{ukazka}
+\caption{Ukázková práce s programem}\label{ukazka-program}
 \end{listing}
 
-Aby bylo možné zadávat příkazy intuitivně, nabízí aplikace uživateli různé prostředky pro ulehčení zadávání vstupu, například různé klávesové zkratky pro pohyb v zadávaném textu, automatické doplňování stiskem tabulátoru (nebo jiné klávesové zkratky) a ukládání historie zadaných příkazů.
 
 
-K pohybování konfiguračním stromem jsem zvolil podobný princip jako při pohybu adresářovou strukturou v počítači. Uživatel prozkoumává strom známými příkazy jako například \textit{cd}, nebo \textit{ls}. K manipulaci s hodnotami slouží například příkazy \textit{get} a \textit{set}.
 % TODO: dopsat popis příkazů
 
 
