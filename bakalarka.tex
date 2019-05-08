@@ -146,7 +146,7 @@ V této kapitole se zabývám tím, jak program vypadá, jeho syntaxí a konstru
 Program, který implementuji, je koncipován jako interaktivní konzolová aplikace. Silnou stránkou konzolových aplikací je možnost použití ve skriptech\footnote{skripty jsou jednoduché programy, používané k definování nějakých scénářů, například \uv{nastav nějaké údaje na nějakém zařízení}}. Uživatel může aplikaci použít interaktivně, napojením terminálu na vstup programu a manuálním zadáváním příkazů, ale také dávkově, uložením příkazů do souboru a vložením tohotu souboru na vstup programu.
 
 \section{Adresování stromu}
-Aby se mohl uživatel odkazovat na jednotlivé uzly ve stromu, je nejprve třeba vytvořit nějaký textový zápis, který jednoznačně určuje jeden lokaci jednoho uzlu. K tomuto jsem zvolil podobný způsob jako adresování souborů a adresářů v souborovém systému. Cesta k uzlu je určena výčtem názvů všech uzlů, které je dělí od modulu. Vzhledem k tomu, že modulů může být mnoho, je třeba určit \uv{kontextový} modul, tedy modul, v kterým se nachází první uzel cesty. Toho lze docílit připsáním názvu modulu a dvojtečky před první uzel cesty. Cesta k uzlu \texttt{bar} (nacházející se v uzlu foo) v modulu \texttt{example-schema} z ukázky~\ref{yang-adresace} bude vypadat takto: \texttt{example-schema:foo/bar}. Může se stát, že v nějaké části cesty, budeme chtít kontext změnit, a proto je možné název modulu a dvojtečku připsat ke každému uzlu.\footnote{cesta k \texttt{bar} by tedy mohla vypadat i takto: \texttt{example-schema:foo/example-schema:bar}}
+Aby se mohl uživatel odkazovat na jednotlivé uzly ve stromu, je nejprve třeba vytvořit nějaký textový zápis, který jednoznačně určuje jeden lokaci jednoho uzlu. K tomuto jsem zvolil podobný způsob jako adresování souborů a adresářů v souborovém systému. Cesta k uzlu je určena výčtem názvů všech uzlů, které je dělí od modulu. Vzhledem k tomu, že modulů může být mnoho, je třeba určit \uv{kontextový} modul, tedy modul, v kterým se nachází první uzel cesty. Toho lze docílit připsáním názvu modulu a dvojtečky před první uzel cesty. Cesta k uzlu \texttt{bar} (nacházející se v uzlu \texttt{foo}) v modulu \texttt{example-schema} z ukázky~\ref{yang-adresace} bude vypadat takto: \texttt{example-schema:foo/bar}. Může se stát, že v nějaké části cesty, budeme chtít kontext změnit, a proto je možné název modulu a dvojtečku připsat ke každému uzlu.\footnote{cesta k \texttt{bar} by tedy mohla vypadat i takto: \texttt{example-schema:foo/example-schema:bar}}
 
 \begin{listing}
 \begin{verbatim}
@@ -166,7 +166,7 @@ module example-schema {
 
 Adresovat lze dvěma způsoby: relativními cestami a absolutními cestami. Relativní cesty se vztahují ke kontextu, v kterém uživatel je. Pokud je aktuální kontext uzel \texttt{example-schema:foo} a chceme adresovat uzel \texttt{bar}, není již třeba v cestě uzel \texttt{foo} zahrnovat a ani není třeba specifikovat kontextový modul. Na druhou stranu, absolutní cesty nedbají na kontext a chovají se, jako kdyby žádný kontext neexistoval. Absolutní cesty se zapisují s lomítkem (\texttt{/}) na začátku.
 
-Dále se cesty rozdělují na schematické a datové. Rozdíl mezi nimi je ten, že pomocí datových cest můžeme adresovat instance uzlů typu \texttt{list}. Instance listu se adresují pomocí jejich klíčů. Syntaxe pro zadání klíčů vypadá takto: \verb¨[název_klice=hodnota]¨. Tímto způsobem postupně vypíšeme všechny hodnoty klíčů požadované instance. Důvodem pro zavedení tohoto rozlišení je, že pro některé příkazy jsou hodnoty klíčů bezvýznamné (například pro to, že nemanipulují s daty).
+Dále se cesty rozdělují na schematické a datové. Rozdíl mezi nimi je ten, že pomocí datových cest můžeme adresovat instance uzlů typu \texttt{list}. Instance \texttt{listu} se adresují pomocí jejich klíčů. Syntaxe pro zadání klíčů vypadá takto: \verb¨[název_klice=hodnota]¨. Tímto způsobem postupně vypíšeme všechny hodnoty klíčů požadované instance. Důvodem pro zavedení tohoto rozlišení je, že pro některé příkazy jsou hodnoty klíčů bezvýznamné (například pro to, že nemanipulují s daty).
 
 \section{Syntaxe}
 V této podkapitole se zabývám syntaxí a popisu jednotlivých příkazů. Základní syntaxe programu vypadá takto:
@@ -178,9 +178,9 @@ Pohyb stromem funguje podobně jako při procházení souborovým systémem na p
 \item[cd]{přesun kontextu na jiné místo ve stromu}
 \item[ls]{výpis uzlů stromu}
 \item[get]{získání konfigurace ze vzdáleného serveru}
-\item[set]{nastavení hodnoty leafu}
-\item[create]{vytvoření instance listu nebo presence containeru}
-\item[delete]{smazání instance listu nebo presence containeru}
+\item[set]{nastavení hodnoty \texttt{leafu}}
+\item[create]{vytvoření instance \texttt{listu} nebo \texttt{presence containeru}}
+\item[delete]{smazání instance \texttt{listu} nebo \texttt{presence containeru}}
 \item[commit]{potvrzení aktuálních změn konfigurace}
 \item[discard]{zrušení aktuálních změn konfigurace}
 \item[help]{zobrazení nápovědy}
@@ -204,7 +204,7 @@ Vzhledem k tomu, že příkaz mění kontext, je nutné, aby přijímal datovou 
 \end{listing}
 
 \subsection{ls}
-Příkaz \texttt{ls} slouží k výpisu poduzlů v aktuálním kontextu, tedy například do jakých uzlů se můžeme přesunout pomocí \texttt{cd}. Tento příkaz se hodí, pokud uživatel nezná daný \texttt{YANG} modul podrobně. Syntaxe vypadá následovně:
+Příkaz \texttt{ls} slouží k výpisu poduzlů v aktuálním kontextu, tedy například do jakých uzlů se můžeme přesunout pomocí \texttt{cd}. Tento příkaz se hodí, pokud uživatel nezná daný \textit{YANG} modul podrobně. Syntaxe vypadá následovně:
 \begin{verbatim}
 ls [--recursive] [path]
 \end{verbatim}
