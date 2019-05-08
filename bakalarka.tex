@@ -293,7 +293,7 @@ auto const twoQuotedValues_def = quotedValue >> quotedValue;
 
 BOOST_SPIRIT_DEFINE(twoStrings)
 \end{minted}
-\caption{Kompatibilní struktura}\label{spirit-advancedrule}
+\caption{Pokročilá definice pravidla}\label{spirit-advancedrule}
 \end{listing}
 
 \subsection{Vedlejší efekty pravidel}\label{sideeffects}
@@ -338,9 +338,8 @@ auto const rule_def = int_;
 BOOST_SPIRIT_DEFINE(rule)
 \end{minted}
 % I can't use \verb here and underscore only works in math blocks (hence the \symbol) >:(
-\caption{\texttt{on\symbol{95}success} metoda}\label{spirit-handler}
+\caption{Metoda \texttt{on\symbol{95}success}}\label{spirit-handler}
 \end{listing}
-
 
 % TODO: ukázat libyang
 
