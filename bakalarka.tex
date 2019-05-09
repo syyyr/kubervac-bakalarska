@@ -168,7 +168,7 @@ Adresovat lze dvěma způsoby: relativními cestami a absolutními cestami. Rela
 
 Dále se cesty rozdělují na schematické a datové. Rozdíl mezi nimi je ten, že pomocí datových cest můžeme adresovat instance uzlů typu \texttt{list}. Instance \texttt{listu} se adresují pomocí jejich klíčů. Syntaxe pro zadání klíčů vypadá takto: \verb¨[název_klice=hodnota]¨. Tímto způsobem postupně vypíšeme všechny hodnoty klíčů požadované instance. Důvodem pro zavedení tohoto rozlišení je, že pro některé příkazy jsou hodnoty klíčů bezvýznamné (například pro to, že nemanipulují s daty).
 
-\section{Syntaxe}
+\section{Syntaxe}\label{syntaxe}
 V této podkapitole se zabývám syntaxí a popisu jednotlivých příkazů. Základní syntaxe programu vypadá takto:
 \begin{verbatim}
 /> <nazev prikazu> <prepinace> <argumenty>
@@ -274,10 +274,6 @@ some_leaf
 \end{listing}
 
 
-
-% TODO: dopsat popis příkazů
-
-
 \chapter{Implementace}
 % TODO: dopsat něco o použitém jazyku a proč zrovna C++
 % TODO: napsat jaké jsou třídy v programu
@@ -311,8 +307,8 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 
 Ke zpracování gramatik příkazů je potřeba parser.\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup} Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
-\subsection{\textit{Boost Spirit X3}}
-\textit{Boost Spirit X3} je knihovna určená k vytváření parserů v jazyce \Cpp{}. Je součástí sady knihoven \textit{Boost}. Jednou z hlavních výhod \textit{Spiritu} je, že lze gramatiky zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.} a \Cpp{} šablon. \Cpp{} umožňuje operátory předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Důsledkem tohoto je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu.
+\subsection{\textit{Boost Spirit X3}}\todo{Možná nadpisy bez textit? YANG nadpis to třeba nemá}
+\textit{Boost Spirit X3} je knihovna určená k vytváření parserů v jazyce \Cpp{}. Je součástí sady knihoven \textit{Boost}. Jednou z hlavních výhod \textit{Spiritu} je, že lze gramatiky zadávat přímo do zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.} a \Cpp{} šablon. \Cpp{} umožňuje operátory předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Důsledkem tohoto je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do validního \Cpp{} kódu. V následujících kapitolách vysvětlím, jakým způsobem lze \textit{Spirit} používat.
 
 \subsection{Základní pravidla}
 \textit{Spirit} generuje parsery pomocí pravidel. Základními stavebními bloky jsou pravidla pro terminály. Příkladem může být pravidlo \verb¨int_¨, které parsuje jedno celé číslo, nebo \verb¨char_¨, které parsuje právě jeden znak. Kromě těchto pravidel, \textit{Spirit} definuje i složitější elementární pravidla jako třeba \texttt{alpha}, které slouží k parsování znaků abecedy nebo \texttt{digit}, které parsuje číslici. K parsování právě jedno druhu znaku lze použít zápis znaku v \Cpp{} (například \verb¨'a'¨).
@@ -376,7 +372,7 @@ struct TwoStrings {
 \end{listing}
 
 \subsection{Pokročilá definice pravidel}\label{advanced-rules}
-Pokud chceme kromě gramatiky pravidel i nějaké další parametry, \texttt{auto} pravidla už nestačí. V ukázce~\ref{spirit-advancedrule} je ukázán příklad kompletní definice pravidla. Nejprve definujeme proměnnou typu \texttt{x3::rule}, kterou se budeme na pravidlo odkazovat. První parametr šablony (\texttt{MyClass}) používá \textit{Spirit} iterně k rozlišení pravidel a také slouží k definování různých vedlejších efektů, o kterých píšu v kapitole~\ref{sideeffects}. Druhý parametr šablony slouží k deklaraci atributu pravidla \texttt{TwoStrings}. Dále je třeba definovat gramatiku pravidla. To se dělá pomocí \textit{auto} pravidel, jejichž název končí na \verb¨_def¨. Nakonec je třeba ještě říct \textit{Spiritu} o pravidlu pomocí makra \verb¨BOOST_SPIRIT_DEFINE¨.
+Pokud chceme kromě gramatiky pravidel nastavit i nějaké další parametry, \texttt{auto} pravidla už nestačí. V ukázce~\ref{spirit-advancedrule} je ukázán příklad kompletní definice pravidla. Nejprve definujeme proměnnou typu \texttt{x3::rule}, kterou se budeme na pravidlo odkazovat. První parametr šablony (\texttt{MyClass}) používá \textit{Spirit} iterně k rozlišení pravidel a také slouží k definování různých vedlejších efektů, o kterých píšu v kapitole~\ref{sideeffects}. Druhý parametr šablony slouží k deklaraci atributu pravidla \texttt{TwoStrings}. Dále je třeba definovat gramatiku pravidla. To se dělá pomocí \textit{auto} pravidel, jejichž název končí na \verb¨_def¨. Nakonec je třeba ještě říct \textit{Spiritu} o pravidlu pomocí makra \verb¨BOOST_SPIRIT_DEFINE¨.
 
 \begin{listing}
 \begin{minted}{c++}
@@ -434,7 +430,53 @@ BOOST_SPIRIT_DEFINE(rule)
 \caption{Metoda \texttt{on\_success}}\label{spirit-handler}
 \end{listing}
 
+\subsection{Implementace syntaxe}
+V následujících kapitolách se zabývám způsoby implementace syntaxe, která je popsána v kapitole~\ref{syntaxe}.
+
+\subsubsection{Příkazy}
+Vytvořit gramatiky samotných příkazů podle jejich syntaxe je poměrně jednoduché. Nejsložitější gramatiku má příkaz \texttt{ls}, kterou lze vidět v ukázce~\ref{grammar-ls}. Nejprve gramatika parsuje řetězec \verb¨"ls"¨ (uložený v proměnné \verb¨ls_::name¨). Nyní je potřeba parsenout volitelný přepínač \verb¨ls_options¨. Samotné pravidlo pro tento přepínač je uvedeno v ukázce~\ref{grammar-ls-options}. Toto pravidlo je implementováno pomocí \uv{symbol table}, což je způsob, jak definovat, které řetězce se mají parsenout a jaké atributy budou mít.
+
+\begin{listing}
+\begin{minted}{c++}
+auto const ls_def =
+    ls_::name >> *(space_separator >> ls_options)
+    >> -(space_separator >> (dataPathListEnd |
+                             dataPath |
+                             schemaPath));
+\end{minted}
+\caption{Gramatika příkazu \texttt{ls}}\label{grammar-ls}
+\end{listing}
+
+
+\begin{listing}
+\begin{minted}{c++}
+struct ls_options_table : x3::symbols<LsOption> {
+    ls_options_table()
+    {
+    add
+        ("--recursive", LsOption::Recursive);
+    }
+} const ls_options;
+\end{minted}
+\caption{Pravidlo \texttt{ls\_options}}\label{grammar-ls-options}
+\end{listing}
+
+Dále je nutné zajistit, aby program vyžadoval mezery mezi jednotlivýmy fragmenty příkazu. To zajišťuje pravidlo \verb¨space_separator¨, které je možné vidět na ukázce~\ref{grammar-space-separator}. Důvodem, proč je pravidlo poněkud složitější, je, že způsob, jakým v programu parsuju příkazy automaticky přeskakuje mezery. Tomu lze manuálně zábranit direktivou \verb¨x3::no_skip¨. Direktivy obalují pravidla a mění jejich vlastnosti, v tomto případě vypnutí přeskakování mezer. Druhou použitou direktivou je \verb¨x3::omit¨, která způsobí, že se zahodí atribut pravidla.
+
+\begin{listing}
+\begin{minted}{c++}
+auto const space_separator =
+    x3::omit[x3::no_skip[space]];
+\end{minted}
+\caption{Pravidlo \texttt{ls\_options}}\label{grammar-ls-options}
+\end{listing}
+
+Nakonec je třeba zapsat gramatiku pro argument cesty. Vzhledem k tomu, že \texttt{ls} přijímá jakoukoli cestu, v gramatice jsou jako alternativy vypsány všechny druhy cest. O implementaci pravidla pro cesty mluvím v následující kapitole.
+
+\subsubsection{Cesty}
+% TODO: napsat o cestách :)
 % TODO: ukázat libyang
+
 
 \section{Interpreter}
 Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
