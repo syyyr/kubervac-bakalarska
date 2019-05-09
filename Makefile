@@ -1,18 +1,17 @@
-output_dir=build
-all: $(output_dir)/bakalarka.pdf $(output_dir)/prezentace.pdf
+all: build/bakalarka.pdf build/prezentace.pdf
 
-$(output_dir)/bakalarka.pdf: bakalarka.tex cvut-logo-bw.pdf FITthesis.cls mybibliographyfile.bib | $(output_dir)
-	xelatex -shell-escape -output-directory=$(output_dir) bakalarka.tex
-	/usr/bin/vendor_perl/biber -output-directory=$(output_dir) bakalarka.bcf
-	xelatex -shell-escape -output-directory=$(output_dir) bakalarka.tex
-	xelatex -shell-escape -output-directory=$(output_dir) bakalarka.tex
+build/bakalarka.pdf: bakalarka.tex cvut-logo-bw.pdf FITthesis.cls mybibliographyfile.bib | build
+	xelatex -shell-escape -output-directory=build bakalarka.tex
+	/usr/bin/vendor_perl/biber -output-directory=build bakalarka.bcf
+	xelatex -shell-escape -output-directory=build bakalarka.tex
+	xelatex -shell-escape -output-directory=build bakalarka.tex
 
-$(output_dir)/prezentace.pdf: prezentace.tex logo-cvut.pdf | $(output_dir)
-	xelatex -shell-escape -output-directory=$(output_dir) prezentace.tex
-	xelatex -shell-escape -output-directory=$(output_dir) prezentace.tex
+build/prezentace.pdf: prezentace.tex logo-cvut.pdf | build
+	xelatex -shell-escape -output-directory=build prezentace.tex
+	xelatex -shell-escape -output-directory=build prezentace.tex
 
-$(output_dir):
-	mkdir $(output_dir)
+build:
+	mkdir build
 
 clean:
-	rm -rf $(output_dir)
+	rm -rf build
