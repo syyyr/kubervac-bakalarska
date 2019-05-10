@@ -69,7 +69,7 @@ V rámci práce se věnuji různým klíčovým technologiím a pojmům. V této
 
 Definice jsou dvou druhů: do některých lze vnořovat další definice (do složených závorek) a některých ne (ty končí středníkem). Dále lze definice rozdělit podle toho, jestli definují nový uzel, nebo parametry aktuálního uzlu. Nový uzel lze vytvořit pomocí \texttt{<typ~uzlu>~<název~uzlu>}. Název musí být jednoznačný. Definice se středníkem vypadají podobně. Dále popisuji, co znamenají definice z ukázky~\ref{yang:ukazka}.\footnote{ačkoli lze jednotlivé názvy přeložit do češtiny, budu používat anglická označení, aby nedošlo k záměně některých termínů (list -- leaf, list -- seznam)}
 
-\begin{figure}
+\begin{listing}
 \begin{verbatim}
 module example-schema {
     prefix ex;
@@ -96,7 +96,7 @@ module example-schema {
 }
 \end{verbatim}
 \caption{Ukázkový \textit{YANG} modul}\label{yang:ukazka}
-\end{figure}
+\end{listing}
 \subsection{\texttt{module}}
 Kořen konfiguračního stromu je \textit{module}. Označuje jednotný celek a ostatní je definováno v něm. V ukázce~\ref{yang:ukazka} jsou vidět jeho požadované definice. Jedna z nich je \texttt{namespace}, což je konstrukt jazyka XML, a druhá je \texttt{prefix}, která umožňuje nastavit zkratku, kterou můžeme následovně použít k odkazu na tento modul.
 
@@ -161,7 +161,7 @@ module example-schema {
     }
 }
 \end{verbatim}
-\caption{Ukázkový \textit{YANG} modul}\label{yang:adresace}
+\caption{\textit{YANG} modul s \texttt{container} \texttt{leaf}}\label{yang:adresace}
 \end{listing}
 
 Adresovat lze dvěma způsoby: relativními cestami a absolutními cestami. Relativní cesty se vztahují ke kontextu, v kterém uživatel je. Pokud je aktuální kontext uzel \texttt{example-schema:foo} a chceme adresovat uzel \texttt{bar}, není již třeba v cestě uzel \texttt{foo} zahrnovat a ani není třeba specifikovat kontextový modul. Na druhou stranu, absolutní cesty nedbají na kontext a chovají se, jako kdyby žádný kontext neexistoval. Absolutní cesty se zapisují s lomítkem (\texttt{/}) na začátku.
