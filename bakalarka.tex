@@ -430,6 +430,11 @@ BOOST_SPIRIT_DEFINE(rule)
 \section{Implementace syntaxe}
 V následujících kapitolách se zabývám způsoby implementace syntaxe, která je popsána v kapitole~\ref{syntaxe}.
 
+\subsection{Třída \texttt{Parser}}
+Rozhraní parseru je implementováno pomocí třídy \texttt{Parser}. Úkolem této třídy je volání metod knihovny \textit{Spirit} a využívání vytvořených gramatik k parsování vstupu a automatickému doplňování. Je v ní také uložen aktuální kontext programu.
+
+Nejdůležitější metodou je \texttt{parseCommand}, jejíž vstupním parametrem je řetězec, který chceme parsovat a vrací datovou strukturu odpovídající uživatelskému vstupu. Dále se zde nachází metoda \texttt{completeCommand}, která funguje takřka stejně jako \texttt{parseCommand}, ale místo datové struktury vrací seznam možných dokončení příkazu. Metoda \texttt{changeNode} slouží ke změně kontextu (pomocí příkazu \texttt{cd}) a metoda \texttt{availableNodes} vrací všechny poduzly v aktuálním kontextovém uzlu.
+
 
 \subsection{Příkazy}
 Vytvořit gramatiky samotných příkazů podle jejich syntaxe je poměrně jednoduché. Nejsložitější gramatiku má příkaz \texttt{ls}, kterou lze vidět v ukázce~\ref{grammar:ls}. Nejprve gramatika parsuje řetězec \verb¨"ls"¨ (uložený v proměnné \verb¨ls:::name¨). Nyní je potřeba parsenout volitelný přepínač \verb¨ls_options¨. Samotné pravidlo pro tento přepínač je uvedeno v ukázce~\ref{grammar:ls:options}. Toto pravidlo je implementováno pomocí \uv{symbol table}, což je způsob, jak definovat, které řetězce se mají parsenout a jaké atributy budou mít.
