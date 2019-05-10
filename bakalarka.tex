@@ -301,10 +301,7 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 
 % TODO: ukázat docopt.cpp (Ale někde jinde)
 
-\section{Zpracování vstupu}
-% TODO: intro o vstupu
-% TODO: ukázat gramatiky
-
+\section{Zpracování vstupu pomocí \textit{Boost Spirit X3}}
 Ke zpracování gramatik příkazů je potřeba parser.\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup} Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
 \subsection{\textit{Boost Spirit X3}}\todo{Možná nadpisy bez textit? YANG nadpis to třeba nemá}
@@ -430,10 +427,10 @@ BOOST_SPIRIT_DEFINE(rule)
 \caption{Metoda \texttt{on\_success}}\label{spirit-handler}
 \end{listing}
 
-\subsection{Implementace syntaxe}
+\section{Implementace syntaxe}
 V následujících kapitolách se zabývám způsoby implementace syntaxe, která je popsána v kapitole~\ref{syntaxe}.
 
-\subsubsection{Příkazy}
+\subsection{Příkazy}
 Vytvořit gramatiky samotných příkazů podle jejich syntaxe je poměrně jednoduché. Nejsložitější gramatiku má příkaz \texttt{ls}, kterou lze vidět v ukázce~\ref{grammar-ls}. Nejprve gramatika parsuje řetězec \verb¨"ls"¨ (uložený v proměnné \verb¨ls_::name¨). Nyní je potřeba parsenout volitelný přepínač \verb¨ls_options¨. Samotné pravidlo pro tento přepínač je uvedeno v ukázce~\ref{grammar-ls-options}. Toto pravidlo je implementováno pomocí \uv{symbol table}, což je způsob, jak definovat, které řetězce se mají parsenout a jaké atributy budou mít.
 
 \begin{listing}
@@ -473,10 +470,65 @@ auto const space_separator =
 
 Nakonec je třeba zapsat gramatiku pro argument cesty. Vzhledem k tomu, že \texttt{ls} přijímá jakoukoli cestu, v gramatice jsou jako alternativy vypsány všechny druhy cest. O implementaci pravidla pro cesty mluvím v následující kapitole.
 
-\subsubsection{Cesty}
-% TODO: napsat o cestách :)
-% TODO: ukázat libyang
+\subsection{Cesty}
+Implementace syntaxe pro cesty je nejsložitější gramatikou z celého programu. Důvodem je to, že názvy uzlů v cestě se mění na základě modelů \textit{YANG} a program je musí kontrolovat dynamicky. Vzhledem k tomu, že pravidla jsou pevně daná a neexistuje mnoho prostředků pro vytváření dynamických pravidel, rozhodl jsem se provést kontrolu názvů uzlů pomocí imperativního kódu, který zakomponuji do \verb¨on_success¨ metod jednotlivých pravidel.
 
+Nejprve ale k samotným gramatikám. Gramatika pro schematickou cestu cestu vypadá takto:
+\begin{minted}{c++}
+auto const schemaPath_def =
+    initializePath >> absoluteStart >> createPathSuggestions >>
+    x3::attr(decltype(schemaPath_::m_nodes)()) >>
+    x3::attr(TrailingSlash::NonPresent) >> x3::eoi
+    |
+    initializePath >> -(absoluteStart >> createPathSuggestions) >>
+    schemaNode % '/' >> (trailingSlash >> createPathSuggestions >>
+    (completing | x3::eoi) | (&space_separator | x3::eoi));
+
+\end{minted}
+Celé pravidlo pro schematickou cestu je rozdělené do dvou větví (pomocí operátoru \texttt{|}). První větev odpovídá samotnému lomítku -- tedy, když chce uživatel zadat jako cestu kořen stromu. Druhá větev odpovídá cestě, v které je alespoň jeden uzel.
+
+Hlavní částí první větve je pravidlo \texttt{absoluteStart}. Je velmi jednoduché -- parsuje lomítko a jeho atribut je příznak, který řiká, že uživatel zadal absolutní cestu.\footnote{z hlediska \uv{absolutnosti} je cesta, která obsahuje pouze lomítko absolutní} Druhé pravidlo, které je zde důležité je \texttt{x3::eoi}. To způsobuje, že větev bude platná pouze pokud uživatel lomítko a žádný vstup navíc. Pravidla \texttt{x3::attr} zajišťují, že obě větve budou kompatibilní co se týče atributů.
+
+Druhá větev parsuje názvy uzlů pomocí pravidla \verb¨schemaNode % '/'¨. Operátor procento (\texttt{\%}) aplikované na pravidlo způsobuje, že se parsene seznam položek oddělených znakem, který je na pravé straně od procenta. V tomto případě se tedy parsuje několik řetězců, které podléhají pravidlu \texttt{schemaNode} a které jsou odděleny lomítkem. To odpovídá stanovené syntaxi cest. Zbylá pravidla jsou pouze \uv{pseudopravidla}. Jejich gramatiky nic neparsují\footnote{obsahují pouze \texttt{x3::eps}, neboli epsilon} a slouží pouze k zavolání imperativního kódu. Pomocí těchto pravidel je také implementováno automatické doplňování, o kterém mluvim v kapitole~\ref{completion}.
+
+Pravidlo \texttt{schemaNode} parsuje jednotlivé názvy uzlů. Jeho gramatika vypadá takto:
+\begin{minted}{c++}
+auto const schemaNode_def =
+createPathSuggestions >> -(module) >> (container |
+                                       list |
+                                       nodeup |
+                                       leaf);
+\end{minted}
+Zde lze již vidět některé konstrukty \textit{YANG}. Za pravidly \texttt{container}, \texttt{list} a \texttt{leaf} se skrývají gramatiky, které určují platný název uzly v modelu \texttt{YANG}. Liší se především v jejich \verb¨on_success¨ metodách. V těchto metodách je probíhá zmiňovaná dynamická kontrola názvů (a druhů) uzlů. V následujících podkapitolách popisuji jakým je tato kontrola implementována.
+
+\subsubsection{Rozhraní \texttt{Schema}}
+Ke kontrole cest slouží abstraktní rozhraní \texttt{Schema}. Toto rozhraní obsahuje různé metody pro kontrolu cest jako například \texttt{isLeaf}, která zjišťuje, jestli je uzel s danou cestou uzel typu \texttt{leaf}. Konkrétně je toto rozhraní implementováno jako třída \texttt{StaticSchema}, která je určená k testování, a jako třída \texttt{YangSchema}, která využívá knihovnu \textit{libyang}~\cite{libyang}. \textit{Libyang} je knihovna vytvořená spoečností CESNET, která umožňuje manipulovat s modely \textit{YANG}.
+
+\subsubsection{Kontrola cest}
+Kontrola cest probíhá v \verb¨on_success¨ metodách pravidel pro jednotlivé typy uzlů. Pomocí direktivy \texttt{x3::with} umožňuje \textit{Spirit} vložit do gramatiky jakýkoliv objekt, který lze poté v těchto metodách použít. Pro kontrolu cest by stačilo do startovacího pravidla\footnote{pravidlo, kde jsou sdruženy pravidlo pro všechny příkazy} vložit objekt typu \texttt{Schema}, nicméně je třeba, aby parser propagoval i nějaké další informace (kromě samotných příkazů) zpět. Proto jsem vytvořil třídy \texttt{ParserContext}, která obsahuje mimojiné několik proměnných, které jsou potřebné pro validaci cest. Jedna z nich je rozhraní \texttt{Schema} a další je akuální uzel, v kterém se parser nachází.
+
+Implementace metod je poté poměrně jednoduchá -- v závislosti na typu uzlu se zavolá příslušná metoda (např.\ \texttt{isLeaf}) rozhraní Schema. Pokud rozhraní vrátí pozitivní odpověď, je název uzlu přijat a parsování pokračuje. Pokud bude odpověď negativní je třeba parser zastavit. Ukázka~\ref{on-success} ukazuje, jak vypadá \verb¨on_success¨ metoda pro \texttt{leaf}. Nejprve metoda získá pomocí \texttt{x3::get} vloženou instanci \texttt{ParserContext}, poté zavolá metodu \texttt{isLeaf} s aktuálním uzlem a na základě výsledku může parseru říct, že pravidlo ve skutečnosti proběhlo úspěšně (pomocí \verb¨_pass(context) = false;¨).
+
+\begin{listing}
+\begin{minted}{c++}
+struct leaf_class {
+    template <typename T, typename Iterator, typename Context>
+    void on_success(Iterator const&, Iterator const&, T& ast, Context const& context)
+    {
+        auto& parserContext = x3::get<parser_context_tag>(context);
+        const auto& schema = parserContext.m_schema;
+
+        if (!schema.isLeaf(parserContext.m_curPath,
+                           {parserContext.m_curModule, ast.m_name}))
+            _pass(context) = false;
+    }
+};
+\end{minted}
+\caption{\texttt{on\_success} metoda pro \texttt{leaf}}
+\end{listing}
+
+
+\subsection{Automatické doplňování}\label{completion}
 
 \section{Interpreter}
 Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
