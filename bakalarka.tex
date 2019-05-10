@@ -464,7 +464,7 @@ struct ls_options_table : x3::symbols<LsOption> {
 \caption{Pravidlo \texttt{ls\_options}}\label{grammar:ls:options}
 \end{listing}
 
-Dále je nutné zajistit, aby program vyžadoval mezery mezi jednotlivýmy fragmenty příkazu. To zajišťuje pravidlo \verb¨space_separator¨, které je možné vidět na ukázce~\ref{grammar:space:separator}. Důvodem, proč je pravidlo poněkud složitější, je, že způsob, jakým v programu parsuju příkazy automaticky přeskakuje mezery. Tomu lze manuálně zábranit direktivou \verb¨x3::no_skip¨. Direktivy obalují pravidla a mění jejich vlastnosti, v tomto případě vypnutí přeskakování mezer. Druhou použitou direktivou je \verb¨x3::omit¨, která způsobí, že se zahodí atribut pravidla.
+Dále je nutné zajistit, aby program vyžadoval mezery mezi jednotlivými fragmenty příkazu. To zajišťuje pravidlo \verb¨space_separator¨, které je možné vidět na ukázce~\ref{grammar:space:separator}. Důvodem, proč je pravidlo poněkud složitější, je, že způsob, jakým v programu parsuju příkazy automaticky přeskakuje mezery. Tomu lze manuálně zábranit direktivou \verb¨x3::no_skip¨. Direktivy obalují pravidla a mění jejich vlastnosti, v tomto případě vypnutí přeskakování mezer. Druhou použitou direktivou je \verb¨x3::omit¨, která způsobí, že se zahodí atribut pravidla.
 
 \begin{listing}
 \begin{minted}{c++}
@@ -530,7 +530,7 @@ struct leaf_class {
     }
 };
 \end{minted}
-\caption{\texttt{on\_success} metoda pro \texttt{leaf}}
+\caption{\texttt{on\_success} metoda pro \texttt{leaf}}\label{on-success}
 \end{listing}
 
 
