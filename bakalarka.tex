@@ -533,8 +533,40 @@ struct leaf_class {
 \caption{\texttt{on\_success} metoda pro \texttt{leaf}}\label{on-success}
 \end{listing}
 
+\section{Automatické doplňování}\label{completion}
+Jednou z klíčových součástí mého programu je automatické doplňování příkazů jejich argumentů.\footnote{doplňování není plně automatické, protože uživatel musí pro doplnění zmáčknout klávesu} Tato funkce přispívá k intuitivnosti používání programu. V následujících kapitolách popisuji, co vše lze v aplikaci doplňovat a také způsoby, které jsem použil k implementaci doplňování.
 
-\subsection{Automatické doplňování}\label{completion}
+\subsection{Vyvolání doplňování}
+O samotnou úpravu uživatelského vstupu a odchycení klávesy tabulátor, jakožto klávesové zkrátky se stará knihovna \textit{replxx} Kód, který se stará o zavolání doplňování velmi jednoduchý. Na ukázce~\ref{replxx:callback} je vidět, jakým způsobem se registruje vlastní funkce pro doplňování. Metoda \texttt{set\_completion\_callback} přijímá volatelný objekt, s parametrem vstupu, který vrací \texttt{std::vector}\todo{footnote I guess} řetězců, kterými lze vstup doplnit.
+
+\begin{listing}
+\begin{minted}{c++}
+lineEditor.set_completion_callback([&parser](const std::string& input, int&) {
+    std::stringstream stream;
+    auto completionsSet = parser.completeCommand(input, stream);
+
+    std::vector<std::string> res;
+    std::transform(completionsSet.begin(),
+                   completionsSet.end(),
+                   std::back_inserter(res),
+                   [input](auto it) { return it; });
+    return res;
+});
+\end{minted}
+\caption{Registrace doplňující funkce}\label{replxx:callback}
+\end{listing}
+
+\subsection{Metoda \texttt{completeCommand}}
+% TODO: write this
+
+\subsection{Pseudopravidla}
+% TODO: write this
+
+\subsection{Doplňování příkazů}
+% TODO: write this
+
+\subsection{Doplňování cest}
+% TODO: write this
 
 \section{Interpreter}
 Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
