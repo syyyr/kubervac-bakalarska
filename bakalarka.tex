@@ -473,7 +473,7 @@ Dále je nutné zajistit, aby program vyžadoval mezery mezi jednotlivými fragm
 auto const space_separator =
     x3::omit[x3::no_skip[space]];
 \end{minted}
-\caption{Pravidlo \texttt{ls\_options}}\label{grammar:ls:options}
+\caption{Pravidlo \texttt{ls\_options}}\label{grammar:space:separator}
 \end{listing}
 
 Nakonec je třeba zapsat gramatiku pro argument cesty. Vzhledem k tomu, že \texttt{ls} přijímá jakoukoli cestu, v gramatice jsou jako alternativy vypsány všechny druhy cest. O implementaci pravidla pro cesty mluvím v následující kapitole.
@@ -532,7 +532,7 @@ struct leaf_class {
     }
 };
 \end{minted}
-\caption{\texttt{on\_success} metoda pro \texttt{leaf}}\label{on-success}
+\caption{\texttt{on\_success} metoda pro \texttt{leaf}}\label{on:success}
 \end{listing}
 
 \section{Automatické doplňování}\label{completion}
@@ -577,6 +577,7 @@ boost::mpl::for_each<CommandTypes, boost::type<boost::mpl::_>>(
         parserContext.m_suggestions.emplace(commandNamesVisitor()(cmd));
 });
 \end{minted}
+\caption{Iterace datových typů \texttt{boost::variant}}\label{createCommandSuggetions}
 \end{listing}
 
 
@@ -610,11 +611,33 @@ Poté, co parser vygeneruje návrhy cest, mohou nastat tři situace. U každé s
         \end{verbatim}
 \end{enumerate}
 
-\subsection{Doplňování hodnot typu identity a enum}
-% TODO: write this
+\subsection{Doplňování hodnot typu identityref a enumeration}
+Při nastavování hodnot příkazem \texttt{set} uživatel nemusí přesně vědět jaké hodnoty jsou pro daný \texttt{leaf} povolené. U datových typů jako celé číslo nebo řetězec, kde může být hodnota libovolná nemá doplňování smysl, nicméně u datových typů, kde jsou povolené hodnoty součástí nějaké uzavřené množiny, to smysl má. Dva z takových typů jsou typ identityref a typ enumeration. Tyto hodnoty se generují pomocí pseudopravidel \texttt{createEnumSuggestions} a \texttt{createIdentitySuggestions}.
+
 
 \subsection{Doplňování klíčů instancí \texttt{listů}}
-% TODO: write this
+Uživatel nemusí vždy vědět, jaké klíče jsou potřeba k jednoznačné definici instance \texttt{listu}. Z tohoto důvodu parser v určitých momentech doplňuje hranaté závorky a názvy klíčů. Při doplňování klíčů mohou nastat dvě situace:
+
+\begin{enumerate}
+    \item Uživatel zadal kompletní název \texttt{listu} a neexistuje žádný jiný uzel, která by začínal stejným názvem.
+
+        V tento moment aplikace doplňuje levou hranatou závorku (\verb¨[¨). Ukázka:
+        \begin{verbatim}
+        /> set example:list
+        /> set example:list[
+        \end{verbatim}
+
+    \item Uživatel zadal kompletní název \texttt{listu}, ale existuje jiný uzel, jehož název začíná jako zmiňovaný list.
+
+        Aplikace v tuto chvíli neví, jestli uživatel chce chce doplnit závorku a začít zadávat klíče, nebo chce, aby program doplnil název uzlu. Program tedy musí nabídnout obě varianty. Ukázka:
+        \begin{verbatim}
+        /> set example:list
+        example:list example:listing
+        /> set example:list
+        \end{verbatim}
+
+\end{enumerate}
+Tyto situace lze rozlišit podle toho, jestli je doplnění jednoznačné (tj.\ že po filtrování zůstane jen jedne návrh). Vzhledem k tomu, že filtrování návrhů probíhá mimo parser, metoda \texttt{completeCommand} neví, co doplnit, pokud se ukáže, že návrh zůstal jen jeden. Kvůli tomu jsem založil proměnnou \texttt{m\_completionSuffix}. Do této proměnné parser zapíše, co se má k návrhu připsat za předpokladu, že bude jen jeden.
 
 
 \section{Interpreter}
