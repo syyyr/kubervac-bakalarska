@@ -435,8 +435,10 @@ Rozhraní parseru je implementováno pomocí třídy \texttt{Parser}. Úkolem t�
 
 Nejdůležitější metodou je \texttt{parseCommand}, jejíž vstupním parametrem je řetězec, který chceme parsovat a vrací datovou strukturu odpovídající uživatelskému vstupu. Dále se zde nachází metoda \texttt{completeCommand}, která funguje takřka stejně jako \texttt{parseCommand}, ale místo datové struktury vrací seznam možných dokončení příkazu. Metoda \texttt{changeNode} slouží ke změně kontextu (pomocí příkazu \texttt{cd}) a metoda \texttt{availableNodes} vrací všechny poduzly v aktuálním kontextovém uzlu.
 
+\subsection{Metoda \texttt{parseCommand}}
+% TODO: write this
 
-\subsection{Příkazy}
+\subsection{Gramatiky příkazů}
 Vytvořit gramatiky samotných příkazů podle jejich syntaxe je poměrně jednoduché. Nejsložitější gramatiku má příkaz \texttt{ls}, kterou lze vidět v ukázce~\ref{grammar:ls}. Nejprve gramatika parsuje řetězec \verb¨"ls"¨ (uložený v proměnné \verb¨ls:::name¨). Nyní je potřeba parsenout volitelný přepínač \verb¨ls_options¨. Samotné pravidlo pro tento přepínač je uvedeno v ukázce~\ref{grammar:ls:options}. Toto pravidlo je implementováno pomocí \uv{symbol table}, což je způsob, jak definovat, které řetězce se mají parsenout a jaké atributy budou mít.
 
 \begin{listing}
@@ -476,7 +478,7 @@ auto const space_separator =
 
 Nakonec je třeba zapsat gramatiku pro argument cesty. Vzhledem k tomu, že \texttt{ls} přijímá jakoukoli cestu, v gramatice jsou jako alternativy vypsány všechny druhy cest. O implementaci pravidla pro cesty mluvím v následující kapitole.
 
-\subsection{Cesty}
+\subsection{Gramatiky cest}
 Implementace syntaxe pro cesty je nejsložitější gramatikou z celého programu. Důvodem je to, že názvy uzlů v cestě se mění na základě modelů \textit{YANG} a program je musí kontrolovat dynamicky. Vzhledem k tomu, že pravidla jsou pevně daná a neexistuje mnoho prostředků pro vytváření dynamických pravidel, rozhodl jsem se provést kontrolu názvů uzlů pomocí imperativního kódu, který zakomponuji do \verb¨on_success¨ metod jednotlivých pravidel.
 
 Nejprve ale k samotným gramatikám. Gramatika pro schematickou cestu cestu vypadá takto:
@@ -557,16 +559,63 @@ lineEditor.set_completion_callback([&parser](const std::string& input, int&) {
 \end{listing}
 
 \subsection{Metoda \texttt{completeCommand}}
-% TODO: write this
+Generování doplňovacích řetězců (návrhů) probíhá v metodě \texttt{completeCommand}. Vstupní řetězec se parsuje stejným způsobem jako při použití metody \texttt{parseCommand}, ale při volání funkce \texttt{phrase\_parse} se výstupní strkutura zahazuje. Místo toho slouží jako výstupní hodnota proměnná \texttt{m\_completions} v třídě \texttt{ParserContext}. Do této proměnné se pomocí speciálních \uv{pseudopravidel} ukládají návrhy na doplnění příkazů. V závislosti na tom, kdy parsování končí (nemusí končit úspěšně, jelikož nemusím vždy doplňovat kompletní příkaz), se použijí poslední vygenerované návrhy.
+
+Vzhledem k tomu, že parser generuje návrhy jen v určitých momentech (například mezi jednotlivými názvy uzlů) a parser neparsene vždy úplně celý vstup, je třeba implementovat filtrování návrhů. Toto se děje pomocí pomocné funkce \texttt{filterByPrefix}.
 
 \subsection{Pseudopravidla}
-% TODO: write this
+\uv{Pseudopravidla} jsou v mých gramatikách pravidla, která neslouží k parsování vstupu, ale pouze jako řídící struktury parseru. Jejich gramatikou je vždy pouze \texttt{x3::eps}. Z tohoto důvodu se vždy provedou jejich \texttt{on\_success} handlery a tímto způsobem je možné vkládat do gramatiky imperativní kód. Pseudopravidla používám k tvytváření návrhů na doplňování a také na inicilizaci některých proměnných obsažených ve třídě \texttt{ParserContext}.
 
-\subsection{Doplňování příkazů}
-% TODO: write this
+
+\subsection{Doplňování názvů příkazů}
+Jeden z podporovaných doplňování je doplňování názvů příkazů, jehož implementace se nachází v pravidle \texttt{createCommandSuggetions}. Jeho \texttt{on\_success} je poměrně přímočarý: pomocí funkce \texttt{for\_each} knihovny \textit{Boost MPL} iteruji výsledný datový typ\todo{popsat někde} celého parseru. Každá struktura asociovaná s příkazem a v sobě také uložený řetězec s názvem příkazu. V ukázce~\ref{createCommandSuggetions} je vidět, že ačkoliv kód neprovádí mnoho, využití knihovny \textit{MPL} poměrně znepřehledňuje to takový kód dělá. Nutnost použití knihovny \textit{MPL} vyplývá z toho, že \textit{Spirit} zatím nepodporuje standardní typ \texttt{std::variant}~\cite{boost-variant}, který umožňuje iterovat obsažené datové typy bez použití knihovny třetí strany.
+
+\begin{listing}
+\begin{minted}{c++}
+boost::mpl::for_each<CommandTypes, boost::type<boost::mpl::_>>(
+    [&parserContext](auto cmd) {
+        parserContext.m_suggestions.emplace(commandNamesVisitor()(cmd));
+});
+\end{minted}
+\end{listing}
+
 
 \subsection{Doplňování cest}
+Kromě názvů příkazů je také možné doplňovat cesty k uzlům. Tato funkce je implementována v pseudopravidlu \texttt{createPathSuggestions}. Z hlediska gramatiky, generování cest probíhá vždy mezi jednotlivými uzly. K získání uzlů pro doplnění slouží metoda \texttt{childNodes}, obsažena v rozhraní \texttt{Schema}, které je součástí pomocné třídy \texttt{ParserContext}.
+
+Poté, co parser vygeneruje návrhy cest, mohou nastat tři situace. U každé situace je ukázka, která znázorňuje, jaký je stav parseru po dokončení parsování.
+\begin{enumerate}
+    \item Po parsování na vstupu nezbyly žádné znaky.
+
+        V tomto případě není třeba návrhy filtrovat a návrhy jsou zobrazeny v původní podobě: pokud by existovala validní cesta \texttt{first/second} a uživatel by chtěl doplnit příkaz \texttt{cd first/second/}, celý vstup by se zpracoval a výslednými návrhy by byly poduzly obsažené v uzlu \texttt{first/second}.
+        \begin{verbatim}
+        /> cd first/second/
+                          ^ parser skončil zde
+        \end{verbatim}
+    \item Po parsování na vstupu zbyly znaky, které nebyl parser schopný parser zpracovat.
+
+        Nezpracované znaky na konci vstupu mohou potencionálně znamenat začátek dalšího uzlu. Vzhledem k tomu, že lze jednoduše zjistit, kde přesně parser skončil, je jednoduché použít nezpracované znaky pro vyfiltrování návrhů. Například, pokud by existovaly validní cesty \texttt{first/second}, \texttt{first/service} a \texttt{first/something} a uživatel bude chtít doplnit příkaz \texttt{cd first/se}. V tomto případě by \uv{se} zůstalo nezpracované a program zobrazí návrhy \uv{second} a \uv{service}.
+        \begin{verbatim}
+        /> cd first/se
+                   ^ parser skončil zde
+        \end{verbatim}
+    \item Po parsování na vstupu nezbyly žádné znaky, ale aktuální vstup lze pořád doplnit.
+
+        V tomto případě nastává problém: pseudopravidla vytváří návrhy na různých místech a samo o sobě nelze zjistit, na jakém místě byly návrhy vytvořeno. Například, pokud by existovaly validní cesty \texttt{first/min} a \texttt{first/min} a uživatel zadá příkaz \texttt{cd first/min}. V tento moment může uživatel buď příkaz potvrdit, anebo vygenerovat návrhy.
+
+        \textit{Spirit} \texttt{on\_success} metod předává několik parametrů. Jeden z nich je parametr \texttt{begin}, který říká, kde se momentálně parser ve vstupním řetězci. Tuto informaci předám pomocí třídy \texttt{ParserContext} zpět do metody \texttt{completeCommand}, kde ji využívám k filtrování výsledků.
+        \begin{verbatim}
+        /> cd first/min
+                      ^ parser skončil zde
+        \end{verbatim}
+\end{enumerate}
+
+\subsection{Doplňování hodnot typu identity a enum}
 % TODO: write this
+
+\subsection{Doplňování klíčů instancí \texttt{listů}}
+% TODO: write this
+
 
 \section{Interpreter}
 Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
