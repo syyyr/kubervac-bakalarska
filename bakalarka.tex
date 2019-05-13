@@ -274,9 +274,9 @@ some_leaf
 
 
 \chapter{Implementace}
-% TODO: dopsat něco o použitém jazyku a proč zrovna C++
-% TODO: napsat jaké jsou třídy v programu
-Na obrázku~\ref{proud:dat} lze vidět, jak proudí data v programu. V následující části popisuji součásti aplikace, kterými data proudí.
+Implementace programu je provedena v programovacím jazyce \Cpp{}. Pro vytváření aplikací typu interaktivní konzole se hodí použít interpretované programovací jazyky, jelikož při drobných změnách a ladění rozhraní není třeba program stále kompilovat. Nicméně, i v jazyce \Cpp{} lze s využitím náležitých knihoven vytvořit uživatelské rozhraní. V této kapitole se zabývám implementací nejdůležitějších prvků programu.
+
+Na obrázku~\ref{proud:dat} lze vidět, jak data proudí programem. Nejprve program přijme vstup od uživatele prostředníctvím uživatelského rozhraní, o kterém se píše v kapitole~\ref{ui}. Následně se vstup zpracuje pomocí parseru do strojově čitelného výstupu (o parseru se píše v kapitole~\ref{spirit:intro}). Po zpracování data proudí do interpreteru, jehož účelem je vykonávat příkazy zpracované z parseru. O interpreteru se píše v kapitole~\ref{interpreter}. Poslední součástí aplikace je rozhraní \texttt{DatastoreAccess}. Toto rozhraní slouží interpreteru k provádění operací na vzdálených serverech. O tomto a dalších použití \texttt{DatastoreAccess} se píše v kapitole~\ref{datastore:access}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=.9\textwidth]{diagram}
@@ -284,7 +284,8 @@ Na obrázku~\ref{proud:dat} lze vidět, jak proudí data v programu. V následuj
 \caption{Diagram proudu dat v programu}\label{proud:dat}
 \end{figure}
 
-\section{Uživatelské rozhraní}
+
+\section{Uživatelské rozhraní}\label{ui}
 Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá řádky uživatelského vstupu a zpracovává je. K interaktivnímu používání aplikace, je nutné implementovat nějaký způsob editace příkazové řádky. To zahrnuje především:
 \begin{itemize}
     \item možnost úpravy aktuálního obsahu příkazové řádky před odesláním
@@ -300,7 +301,7 @@ Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti 
 
 % TODO: ukázat docopt.cpp (Ale někde jinde)
 
-\section{Zpracování vstupu pomocí \textit{Boost Spirit X3}}
+\section{Zpracování vstupu pomocí \textit{Boost Spirit X3}}\label{spirit:intro}
 Ke zpracování gramatik příkazů je potřeba parser.\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup} Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
 \subsection{\textit{Boost Spirit X3}}\todo{Možná nadpisy bez textit? YANG nadpis to třeba nemá}
@@ -426,7 +427,7 @@ BOOST_SPIRIT_DEFINE(rule)
 \caption{Metoda \texttt{on\_success}}\label{spirit:handler}
 \end{listing}
 
-\section{Implementace syntaxe}
+\section{Implementace syntaxe}\label{syntax:impl}
 V následujících kapitolách se zabývám způsoby implementace syntaxe, která je popsána v kapitole~\ref{syntaxe}.
 
 \subsection{Třída \texttt{Parser}}
@@ -435,7 +436,29 @@ Rozhraní parseru je implementováno pomocí třídy \texttt{Parser}. Úkolem t�
 Nejdůležitější metodou je \texttt{parseCommand}, jejíž vstupním parametrem je řetězec, který chceme parsovat a vrací datovou strukturu odpovídající uživatelskému vstupu. Dále se zde nachází metoda \texttt{completeCommand}, která funguje takřka stejně jako \texttt{parseCommand}, ale místo datové struktury vrací seznam možných dokončení příkazu. Metoda \texttt{changeNode} slouží ke změně kontextu (pomocí příkazu \texttt{cd}) a metoda \texttt{availableNodes} vrací všechny poduzly v aktuálním kontextovém uzlu.
 
 \subsection{Metoda \texttt{parseCommand}}
-% TODO: write this
+Tato metoda obstarává volání vygenerovaného \textit{Spirit} parseru na uživatelský vstup. Jejím úkolem je také vytvoření instance třídy \texttt{ParserContext}, o které píšu v kapitole~\ref{path:checking}. Volání parseru probíhá pomocí funkce \texttt{x3::phrase\_parse}. Tato funkce přijímá několik parametrů:
+
+\begin{itemize}
+    \item referenci na iterátor, který odpovídá začáku vstupního řetězce
+    \item iterátor, který odpovídá konci vstupního řetězce
+    \item gramatiku, podle které bude parsování probíhat
+    \item \uv{skip parser}, který určuje, které znaky parser přeskakuje
+    \item referenci na výstupní strukturu
+\end{itemize}
+První argument je datového typu reference z toho důvodu, že \textit{Spirit} tento iterátor iterně používá k pohybu nad vstupním řetězcem. To znamená, že po dokončení zpracování lze zjistit, na jakém místě parsování skončilo.
+
+\uv{Skip parser} je speciální parserm, který určuje, které znaky parser přeskočí\footnote{ve \textit{Spiritu} existuje i funkce \texttt{x3::parse}, která tuto funkci nemá} přeskakuje. Výhoda přeskakování je, že se gramatiky programu nemusí starat o mezi a parser jich přeskočí libovolný počet.
+
+Posledním argumentem\footnote{funkce je variadická, což znamená, že lze použít i více výstupních parametrů} je referenci na výstupní strukturu. Do této struktury se ukládá strojově čitelný výstup, jenž je výsledkem celého parsování. Ke každému fragmentu příkazů (cesty k uzlům, hodnoty atd.) jsem vytvořil strukturu, která jednoznačně vyjadřuje, co uživatel zadal. Struktury na nejvyšší odpovídají jednotlivým příkazům. To znamená, že pro každý příkaz je vytvořena právě jedna struktura, která ho jednoznačně definuje -- jednak podle typu (například struktura \texttt{cd\_} vyjadřuje příkaz cd -- ukázka~\ref{struct:cd}) a také podle jeho argumentů. Výstupní parametr parseru má tedy datový typ, který dokáže obsáhnout kteroukoli z těchto struktur. Standardní knihovna \Cpp{} nabízí k tomuto účelu třídu \texttt{std::variant}, nicméně z důvodů popsaných v kapitole~\ref{completing:commands} jsem zvolil třídu \texttt{boost::variant}.
+
+\begin{listing}
+\begin{minted}{c++}
+struct cd_ : x3::position_tagged {
+    dataPath_ m_path;
+};
+\end{minted}
+\caption{Struktura \texttt{cd\_}}\label{struct:cd}
+\end{listing}
 
 \subsection{Gramatiky příkazů}
 Vytvořit gramatiky samotných příkazů podle jejich syntaxe je poměrně jednoduché. Nejsložitější gramatiku má příkaz \texttt{ls}, kterou lze vidět v ukázce~\ref{grammar:ls}. Nejprve gramatika parsuje řetězec \verb¨"ls"¨ (uložený v proměnné \verb¨ls:::name¨). Nyní je potřeba parsenout volitelný přepínač \verb¨ls_options¨. Samotné pravidlo pro tento přepínač je uvedeno v ukázce~\ref{grammar:ls:options}. Toto pravidlo je implementováno pomocí \uv{symbol table}, což je způsob, jak definovat, které řetězce se mají parsenout a jaké atributy budou mít.
@@ -511,8 +534,8 @@ Zde lze již vidět některé konstrukty \textit{YANG}. Za pravidly \texttt{cont
 \subsubsection{Rozhraní \texttt{Schema}}
 Ke kontrole cest slouží abstraktní rozhraní \texttt{Schema}. Toto rozhraní obsahuje různé metody pro kontrolu cest jako například \texttt{isLeaf}, která zjišťuje, jestli je uzel s danou cestou uzel typu \texttt{leaf}. Konkrétně je toto rozhraní implementováno jako třída \texttt{StaticSchema}, která je určená k testování, a jako třída \texttt{YangSchema}, která využívá knihovnu \textit{libyang}~\cite{libyang}. \textit{Libyang} je knihovna vytvořená spoečností CESNET, která umožňuje manipulovat s modely \textit{YANG}.
 
-\subsubsection{Kontrola cest}
-Kontrola cest probíhá v \verb¨on_success¨ metodách pravidel pro jednotlivé typy uzlů. Pomocí direktivy \texttt{x3::with} umožňuje \textit{Spirit} vložit do gramatiky jakýkoliv objekt, který lze poté v těchto metodách použít. Pro kontrolu cest by stačilo do startovacího pravidla\footnote{pravidlo, kde jsou sdruženy pravidlo pro všechny příkazy} vložit objekt typu \texttt{Schema}, nicméně je třeba, aby parser propagoval i nějaké další informace (kromě samotných příkazů) zpět. Proto jsem vytvořil třídy \texttt{ParserContext}, která obsahuje mimo jiné několik proměnných, které jsou potřebné pro validaci cest. Jedna z nich je rozhraní \texttt{Schema} a další je aktuální uzel, v kterém se parser nachází.
+\subsubsection{Kontrola cest}\label{path:checking}
+Kontrola cest probíhá v \verb¨on_success¨ metodách pravidel pro jednotlivé typy uzlů. Pomocí direktivy \texttt{x3::with} umožňuje \textit{Spirit} vložit do gramatiky jakýkoliv objekt, který lze poté v těchto metodách použít. Pro kontrolu cest by stačilo do startovacího pravidla\footnote{pravidlo, kde jsou sdruženy pravidlo pro všechny příkazy} vložit objekt typu \texttt{Schema}, nicméně je třeba, aby parser propagoval i nějaké další informace (kromě samotných příkazů) zpět. Proto jsem vytvořil třídu \texttt{ParserContext}, která obsahuje mimo jiné několik proměnných, které jsou potřebné pro validaci cest. Jedna z nich je rozhraní \texttt{Schema} a další je aktuální uzel, v kterém se parser nachází.
 
 Implementace metod je poté poměrně jednoduchá -- v závislosti na typu uzlu se zavolá příslušná metoda (např.\ \texttt{isLeaf}) rozhraní Schema. Pokud rozhraní vrátí pozitivní odpověď, je název uzlu přijat a parsování pokračuje. Pokud bude odpověď negativní je třeba parser zastavit. Ukázka~\ref{on:success} ukazuje, jak vypadá \verb¨on:success¨ metoda pro \texttt{leaf}. Nejprve metoda získá pomocí \texttt{x3::get} vloženou instanci \texttt{ParserContext}, poté zavolá metodu \texttt{isLeaf} s aktuálním uzlem a na základě výsledku může parseru říct, že pravidlo ve skutečnosti proběhlo úspěšně (pomocí \verb¨_pass(context) = false;¨).
 
@@ -566,7 +589,7 @@ Vzhledem k tomu, že parser generuje návrhy jen v určitých momentech (napří
 \uv{Pseudopravidla} jsou v mých gramatikách pravidla, která neslouží k parsování vstupu, ale pouze jako řídící struktury parseru. Jejich gramatikou je vždy pouze \texttt{x3::eps}. Z tohoto důvodu se vždy provedou jejich \texttt{on\_success} handlery a tímto způsobem je možné vkládat do gramatiky imperativní kód. Pseudopravidla používám k tvytváření návrhů na doplňování a také na inicilizaci některých proměnných obsažených ve třídě \texttt{ParserContext}.
 
 
-\subsection{Doplňování názvů příkazů}
+\subsection{Doplňování názvů příkazů}\label{completing:commands}
 Jeden z podporovaných doplňování je doplňování názvů příkazů, jehož implementace se nachází v pravidle \texttt{createCommandSuggetions}. Jeho \texttt{on\_success} je poměrně přímočarý: pomocí funkce \texttt{for\_each} knihovny \textit{Boost MPL} iteruji výsledný datový typ\todo{popsat někde} celého parseru. Každá struktura asociovaná s příkazem a v sobě také uložený řetězec s názvem příkazu. V ukázce~\ref{createCommandSuggetions} je vidět, že ačkoliv kód neprovádí mnoho, využití knihovny \textit{MPL} poměrně znepřehledňuje to takový kód dělá. Nutnost použití knihovny \textit{MPL} vyplývá z toho, že \textit{Spirit} zatím nepodporuje standardní typ \texttt{std::variant}~\cite{boost-variant}, který umožňuje iterovat obsažené datové typy bez použití knihovny třetí strany.
 
 \begin{listing}
@@ -603,7 +626,7 @@ Poté, co parser vygeneruje návrhy cest, mohou nastat tři situace. U každé s
 
         V tomto případě nastává problém: pseudopravidla vytváří návrhy na různých místech a samo o sobě nelze zjistit, na jakém místě byly návrhy vytvořeno. Například, pokud by existovaly validní cesty \texttt{first/min} a \texttt{first/min} a uživatel zadá příkaz \texttt{cd first/min}. V tento moment může uživatel buď příkaz potvrdit, anebo vygenerovat návrhy.
 
-        \textit{Spirit} \texttt{on\_success} metod předává několik parametrů. Jeden z nich je parametr \texttt{begin}, který říká, kde se momentálně parser ve vstupním řetězci. Tuto informaci předám pomocí třídy \texttt{ParserContext} zpět do metody \texttt{completeCommand}, kde ji využívám k filtrování výsledků.
+        \textit{Spirit} do \texttt{on\_success} metod předává několik parametrů. Jeden z nich je parametr \texttt{begin}, který říká, kde se momentálně parser ve vstupním řetězci nachází. Tuto informaci předám pomocí třídy \texttt{ParserContext} zpět do metody \texttt{completeCommand}, kde ji využívám k filtrování výsledků.
         \begin{verbatim}
         /> cd first/min
                       ^ parser skončil zde
@@ -639,11 +662,10 @@ Uživatel nemusí vždy vědět, jaké klíče jsou potřeba k jednoznačné def
 Tyto situace lze rozlišit podle toho, jestli je doplnění jednoznačné (tj.\ že po filtrování zůstane jen jedne návrh). Vzhledem k tomu, že filtrování návrhů probíhá mimo parser, metoda \texttt{completeCommand} neví, co doplnit, pokud se ukáže, že návrh zůstal jen jeden. Kvůli tomu jsem založil proměnnou \texttt{m\_completionSuffix}. Do této proměnné parser zapíše, co se má k návrhu připsat za předpokladu, že bude jen jeden.
 
 
-\section{Interpreter}
+\section{Interpreter}\label{interpreter}
 Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
 
-\section{DatastoreAccess}
-\subsection{Přístup k úložišti konfigurace}
+\section{Přístup k úložišti konfigurace}\label{datastore:access}
 K vykonávání příkazů potřebuje interpreter přístup k datovému úložišti. Toto je implementováno pomocí abstraktního rozhraní \texttt{DatastoreAccess}. Tato součást obsahuje procedury k nastavování leafů na různé hodnoty a jiné metody na změnu konfigurace. V mé aplikaci budou implementována tato konkrétní rozhraní:
 
 \subsection{NetconfAccess}
