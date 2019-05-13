@@ -127,9 +127,23 @@ Tato zpráva se podobá zprávě \texttt{<get>}. Rozdíl je v tom, že pomocí \
 \subsection{\texttt{<edit-config>}}
 \texttt{<edit-config>} slouží k úpravě konfiguračního stromu na serveru. Klient zašle úpravy ve formě podstromu a vybere, jestli chce tuto část sloučit s aktuálním podstromem, smazat, přepsat apod.
 
-\section{Teorie formálních jazyků}
-% TODO: write this
-% TODO: ukázat EBNF
+\section{Teorie formálních jazyků a gramatiky}
+V této práci se také velmi často zabývám gramatikami z teorie formálních jazyků. Formální jazyk je množina řetězců vytvořených pomocí nějaké abecedy. Jazykem může být i syntaxe příkazů libolovného programu, což je pravda i v případě aplikace, kterou implementuju. Tyto formální jazyky lze mimo jiné zapsat pomocí formálních gramatik -- předpisů, které určují, jakým způsobem jsou slovy z jazyka vytvářeny.\,\cite{formal-languages}
+
+Formálně, gramatika je čtveřice \[(N, \Sigma, P, S),\] kde \[N\] je množina neterminálů\footnote{znaky, které jsou pouze náhradami za reálné znaky z abededy}, \[\Sigma\] je množina literálů\footnote{znaků abecedy, z které se skládájí slova jazyka}, \[P\] je množina pravidel, podle kterých se vytváří slova a \[S\] je počáteční neterminál, od kterého vytváření slov začíná. Při tvorbě slov se nejprve vezme počáteční neterminál. Pomocí pravidel se poté neterminál přepisuje na další neterminály a literály. Toto se opakuje dokud se všechny neterminály nepřepíšou na literály.
+
+Jeden ze způsobů, jakým zapisovat pravidla gramatiky, je pomocí \textit{EBNF}.\footnote{Extended Backus--Naur form; rozvinutá Backusova--Naurova forma} Tento způsob zápisu byl vymyšlen za účelem vytvoření prostředku, kterým by šla zapsat syntaxe jakéhokoliv programovacího jazyka.\,\cite{ebnf-cmu} \textit{EBNF} se zabývám kvůli podobnosti zápisu pravidel gramatik s knihovnou \textit{Boost Spirit X3}. Ukázku pravidel zapsaných v \textit{EBNF} lze vidět na ukázce (počáteční pravidlo je pravidlo \texttt{start}):
+\begin{verbatim}
+start = 'a' , { letter }
+letter = "a" | "b" | "c" | "d" | "e" | "f" | "g"
+       | "h" | "i" | "j" | "k" | "l" | "m" | "n"
+       | "o" | "p" | "q" | "r" | "s" | "t" | "u"
+       | "v" | "w" | "x" | "y" | "z" ;
+\end{verbatim}
+Syntaxe \verb¨<nazev> =¨ definuje pravidla. Čárka slouží k zřetězení dvou
+% TODO: complete this shit
+
+
 
 
 \chapter{Existující relevantní práce}
@@ -325,7 +339,7 @@ Ke skládání pravidel ve \textit{Spiritu} slouží \Cpp{} operátory. Operáto
 Definovat pravidla lze dvěma způsoby. Jeden z nich je pomocí tzv.\ \texttt{auto} pravidel \texttt{auto} pravidla využívají \textit{type inference}, což je funkce \Cpp{}, která automaticky zjistí, o jaký typ proměnné se jedná a uživatel ho nemusí zadávat manuálně. Například deklarace \verb¨auto a = 0;¨ automaticky vyhodnotí, že datový typ proměnně \texttt{a} by měl být \texttt{int}. Vzhledem k tomu, že datový typ pravidel je takřka nemožné určit manuálně (název datového typu složitějších pravidel může mít kvůli šablonám i tisíce znaků), je tedy klíčové slovo \texttt{auto} téměř nezbytné. \texttt{auto} pravidla lze vidět na ukázkách~\ref{spirit:grammar}~a~\ref{spirit:nonterminals}. Pro jednoduché parsery často \texttt{auto} pravidla stačí. Pro složitější parsery je třeba použít pokročilou formu definice pravidel, o které se zmiňuji v kapitole~\ref{advanced:rules}.
 
 \subsection{Srovnání zápisu v EBNF a ve \textit{Spiritu}}
-K zápisu gramatik používá \textit{Spirit} syntaxi, která se podobá syntaxi EBNF.\footnote{Extended Backus--Naur form} Rozdíl spočívá především v operátorech, které nemají v \Cpp{} postfixovou variantu, jako například operátor plus (\texttt{+}) nebo operátor násobení (\texttt{*}). V těchto případech je použita prefixová varianta operátoru. V ukázce~\ref{ebnf} je vidět EBNF gramatika, která odpovídá dvěma řetězcům, které jsou obalené uvozovkami.
+K zápisu gramatik používá \textit{Spirit} syntaxi, která se podobá syntaxi EBNF\@. Rozdíl spočívá především v operátorech, které nemají v \Cpp{} postfixovou variantu, jako například operátor plus (\texttt{+}) nebo operátor násobení (\texttt{*}). V těchto případech je použita prefixová varianta operátoru. V ukázce~\ref{ebnf:quotedValues} je vidět EBNF gramatika, která odpovídá dvěma řetězcům, které jsou obalené uvozovkami.
 
 \begin{listing}
 \begin{verbatim}
@@ -333,7 +347,7 @@ not-a-quote = ... (* všechny znaky kromě uvozovky *)
 quotedValue = '"' , not-a-quote , {not-a-quote} , '"'
 twoQuotedValues = quotedValue , quotedValue
 \end{verbatim}
-\caption{Příklad EBNF}\label{ebnf}
+\caption{Příklad EBNF}\label{ebnf:quotedValues}
 \end{listing}
 
 Na ukázce~\ref{spirit:grammar} je možné vidět způsob, jakým by se zapsala gramatika z ukázky~\ref{ebnf} ve \textit{Spiritu}. Samotné pravidlo \verb¨'"'¨ říká, že pravidlo nejprve parsuje jednu uvozovku. Operátor \verb¨>>¨ značí sekvenci pravidel za sebou. \verb¨char:-'"'¨ znamená, že chceme parsenout jakýkoliv znak kromě uvozovky, a celé toto pravidlo je ještě obaleno operátorem \verb¨+¨, který celé vnitřní pravidlo zopakuje jednou až nekonečně krát (EBNF podporuje pouze nula až nekonečně krát). Na konci zbývá už jen pravidlo, které opět parsuje jednu uvozovku. Ve \textit{Spiritu} je každé takové pravidlo zároveň novým neterminálem a lze jej používat v jiných pravidlech stejně jako v EBNF\@. Gramatika v ukázce~\ref{spirit:nonterminals} parsuje právě dva uvozené řetězce, tak jak udává pravidlo \texttt{quotedValue}.
