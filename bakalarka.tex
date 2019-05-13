@@ -134,16 +134,13 @@ Formálně, gramatika je čtveřice \[(N, \Sigma, P, S),\] kde \[N\] je množina
 
 Jeden ze způsobů, jakým zapisovat pravidla gramatiky, je pomocí \textit{EBNF}.\footnote{Extended Backus--Naur form; rozvinutá Backusova--Naurova forma} Tento způsob zápisu byl vymyšlen za účelem vytvoření prostředku, kterým by šla zapsat syntaxe jakéhokoliv programovacího jazyka.\,\cite{ebnf-cmu} \textit{EBNF} se zabývám kvůli podobnosti zápisu pravidel gramatik s knihovnou \textit{Boost Spirit X3}. Ukázku pravidel zapsaných v \textit{EBNF} lze vidět na ukázce (počáteční pravidlo je pravidlo \texttt{start}):
 \begin{verbatim}
-start = 'a' , { letter }
+start = 'a' , { letter };
 letter = "a" | "b" | "c" | "d" | "e" | "f" | "g"
        | "h" | "i" | "j" | "k" | "l" | "m" | "n"
        | "o" | "p" | "q" | "r" | "s" | "t" | "u"
        | "v" | "w" | "x" | "y" | "z" ;
 \end{verbatim}
-Syntaxe \verb¨<nazev> =¨ definuje pravidla. Čárka slouží k zřetězení dvou
-% TODO: complete this shit
-
-
+Syntaxe \verb¨<nazev> =¨ definuje pravidla. Literály jsou uváděny pomocí znaků uvnitř uvozovek. Znak svislá čára \texttt{|} značí alternativu, což znamená, že neterminál lze nahradit za jakýkoliv symbol oddělený touto čarou. Neterminál \texttt{letter} tedy umožňuje nahrazení za jakýkoliv znak abecedy. Tento neterminál je použit v pravidle \texttt{start}. Čárka \texttt{,} slouží k zřetězení (\uv{slepení}) dvou jiných řetězců a složené závorky (\texttt{\{} a \texttt{\}}) znamenají, že cokoli uvnitř lze opakovat v libovolném počtu (i nula krát). Pravidla se oddělují středníkem \texttt{;}. Gramatika z ukázky odpovídá jazyku, jenž obsahuje slova, která začínají písmenem \uv{a} a poté následuje libovolný počet písmen abecedy.
 
 
 \chapter{Existující relevantní práce}
