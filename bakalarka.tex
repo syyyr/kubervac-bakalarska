@@ -344,8 +344,8 @@ Ke skládání pravidel ve~\textit{Spiritu} slouží \Cpp{} operátory. Operáto
     \item[\uv{\texttt{>>}}]{Sekvence. \verb¨char_ >> char_¨ parsuje dva znaky za~sebou. V EBNF se zapisuje pomocí čárky (\texttt{,}).}
     \item[\uv{\texttt{>}}]{\verb¨char_ > char_¨ parsuje dva znaky za~sebou. Rozdíl oproti sekvenci spočívá v tom, že pokud se pravidlo za~většítkem nezparsuje úspěšně, parsování automaticky končí neúspěchem. V EBNF neexistuje obdobný zápis.}
     \item[\uv{\texttt{*}}]{\verb¨*char_¨ parsuje jakýkoliv znak nula až nekonečně krát. V EBNF se pravidlo obaluje složenými závorkami.}
-    \item[\uv{\texttt{+}}]{\verb¨+char_¨ parsuje jakýkoliv znak jednou až nekonečně krát. V EBNF neexistuje obdobný zápis.}
-    \item[\uv{\texttt{prefixové -}}]{\verb¨-char_¨ parsuje jakýkoliv znak jednou nebo nula krát. V EBNF neexistuje obdobný zápis.}
+    \item[\uv{\texttt{+}}]{\verb¨+char_¨ parsuje jakýkoliv znak jednou až nekonečně krát. V EBNF ne\-existuje obdobný zápis.}
+    \item[\uv{\texttt{prefixové -}}]{\verb¨-char_¨ parsuje jakýkoliv znak právě jednou nebo nula krát. V EBNF neexistuje obdobný zápis.}
     \item[\uv{\texttt{infixové -}}]{\verb¨char_-'a'¨ parsuje jakýkoliv znak kromě znaku \uv{a}. V EBNF se zapisuje stejně.}
     \item[\uv{\texttt{|}}]{Alternativa. \verb¨char_ | int_¨ parsuje jakýkoliv znak nebo číslo. V EBNF se zapisuje stejně.}
 \end{description}
@@ -364,7 +364,8 @@ K zápisu gramatik používá \textit{Spirit} syntaxi, která se podobá syntaxi
 
 \begin{listing}[H]
 \begin{verbatim}
-not-a-quote = ... (* všechny znaky kromě uvozovky oddělené svislou čarou *)
+not-a-quote = ... (* všechny znaky kromě uvozovky
+                     oddělené svislou čarou *)
 quotedValue = '"' , not-a-quote , {not-a-quote} , '"'
 twoQuotedValues = quotedValue , quotedValue
 \end{verbatim}
@@ -427,7 +428,7 @@ auto const rule = int_[greeting];
 
 Nevýhodou sémantických akcí je, že jejich používání velmi znepřehledňuje kód gramatik. Z tohoto důvodu existuje druhý způsob, jak přiřadit pravidlům imperativní kód a to pomocí \verb¨on_success¨ procedur. Zde hraje roli první parametr šablony \texttt{x3::rule}. Pokud do~třídy, kterou v parametru uvedeme, nadefinujeme metodu \verb¨on_success¨, tato metoda se zavolá pří úspěšném zparsování pravidla podobným způsobem jako fungují sémantické akce. Výhodou je, že tímto způsobem oddělíme gramatiky od~imperativního kódu a gramatiky se stanou čitelnějšími.
 
-Kromě metody \verb¨on_success¨ lze ještě k pravidlům definovat metodu \verb¨on_error¨. Tato metoda se zavolá v případě, že gramatika daného pravidla nezparsovala pravidlo, které následovalo za~operátorem většítko (\texttt{>}). V této metodě lze chybu odchytit, vypsat chybové hlášení a popřípadě i předat parseru další instrukce (například předat chybu u úroveň výš).
+Kromě metody \verb¨on_success¨ lze pravidlům definovat metodu \verb¨on_error¨. Tato metoda se zavolá v případě, že gramatika daného pravidla nezparsovala pravidlo, které následovalo za~operátorem většítko (\texttt{>}). V této metodě lze chybu odchytit, vypsat chybové hlášení a popřípadě i předat parseru další instrukce (například předat chybu u úroveň výš).
 
 V ukázce~\ref{spirit:handler} můžeme vidět příklad jak zapsat třídu s \verb¨on_success¨ metodou. V této metodě máme k dispozici čtyři parametry, které poskytují informace o stavu parseru a také možnosti jak chování parseru ovlivnit:
 \begin{description}
@@ -531,7 +532,7 @@ auto const space_separator =
 \caption{Pravidlo \texttt{space\_separator}}\label{grammar:space:separator}
 \end{listing}
 
-Nakonec je třeba zapsat gramatiku pro argument cesty. Vzhledem k tomu, že \texttt{ls} přijímá jakoukoli cestu, v gramatice jsou jako alternativy vypsány všechny druhy cest. O implementaci pravidla pro cesty mluvím v následující kapitole.
+Nakonec je třeba zapsat gramatiku pro argument cesty. Vzhledem k tomu, že \texttt{ls} přijímá jakoukoliv cestu, v gramatice jsou jako alternativy vypsány všechny druhy cest. O implementaci pravidla pro cesty mluvím v následující kapitole.
 
 \subsection{Gramatiky cest}
 Implementace syntaxe pro cesty je nejsložitější gramatikou z celého programu. Důvodem je to, že názvy uzlů v cestě se mění na~základě modelů \textit{YANG} a program je musí kontrolovat dynamicky. Vzhledem k tomu, že pravidla jsou pevně daná a neexistuje mnoho prostředků pro vytváření dynamických pravidel, rozhodl jsem se provést kontrolu názvů uzlů pomocí imperativního kódu, který zakomponuji do~\verb¨on_success¨ metod jednotlivých pravidel.
@@ -539,14 +540,16 @@ Implementace syntaxe pro cesty je nejsložitější gramatikou z celého program
 Nejprve ale k samotným gramatikám. Gramatika pro schematickou cestu cestu vypadá takto:
 \begin{minted}{c++}
 auto const schemaPath_def =
-    initializePath >> absoluteStart >> createPathSuggestions >>
+    initializePath >>
+    absoluteStart >> createPathSuggestions >>
     x3::attr(decltype(schemaPath_::m_nodes)()) >>
     x3::attr(TrailingSlash::NonPresent) >> x3::eoi
     |
-    initializePath >> -(absoluteStart >> createPathSuggestions) >>
-    schemaNode % '/' >> (trailingSlash >> createPathSuggestions >>
+    initializePath >>
+    -(absoluteStart >> createPathSuggestions) >>
+    schemaNode % '/' >>
+    (trailingSlash >> createPathSuggestions >>
     (completing | x3::eoi) | (&space_separator | x3::eoi));
-
 \end{minted}
 Celé pravidlo pro schematickou cestu je rozdělené do~dvou větví (pomocí operátoru \texttt{|}). První větev odpovídá samotnému lomítku -- tedy, když chce uživatel zadat jako cestu kořen stromu. Druhá větev odpovídá cestě, v které je alespoň jeden uzel.
 
@@ -562,7 +565,7 @@ createPathSuggestions >> -(module) >> (container |
                                        nodeup |
                                        leaf);
 \end{minted}
-Zde lze již vidět některé konstrukty \textit{YANG}. Za~pravidly \texttt{container}, \texttt{list} a \texttt{leaf} se skrývají gramatiky, které určují platný název uzly v modelu \texttt{YANG}. Liší se především v jejich \verb¨on_success¨ metodách. V těchto metodách probíhá zmiňovaná dynamická kontrola názvů (a~druhů) uzlů. V následujících podkapitolách popisuji, jakým způsobem je tato kontrola implementována.
+Zde lze již vidět některé konstrukty \textit{YANG}. Za~pravidly \texttt{container}, \texttt{list} a \texttt{leaf} se skrývají gramatiky, které určují platný název uzly v modelu \textit{YANG}. Liší se především v jejich \verb¨on_success¨ metodách. V těchto metodách probíhá zmiňovaná dynamická kontrola názvů (a~druhů) uzlů. V následujících podkapitolách popisuji, jakým způsobem je tato kontrola implementována.
 
 \subsubsection{Rozhraní \texttt{Schema}}
 Ke kontrole cest slouží abstraktní rozhraní \texttt{Schema}. Toto rozhraní obsahuje různé metody pro kontrolu cest jako například \texttt{isLeaf}, která zjišťuje, jestli je uzel s danou cestou uzel typu \texttt{leaf}. Konkrétně je toto rozhraní implementováno jako třída \texttt{StaticSchema}, která je určená k testování, a jako třída \texttt{YangSchema}, která využívá knihovnu \textit{libyang}~\cite{libyang}. \textit{Libyang} je knihovna vytvořená spoečností CESNET, která umožňuje manipulovat s modely \textit{YANG}.
@@ -572,7 +575,7 @@ Kontrola cest probíhá v \verb¨on_success¨ metodách pravidel pro jednotlivé
 
 Implementace metod je poté poměrně přímočará -- v závislosti na~typu uzlu se zavolá příslušná metoda (např.\ \texttt{isLeaf}) rozhraní Schema. Pokud rozhraní vrátí pozitivní odpověď, je název uzlu přijat a parsování pokračuje. Pokud bude odpověď negativní je třeba parser zastavit.
 
-Ukázka~\ref{on:success} ukazuje, jak vypadá \verb¨on_success¨ metoda třídy \texttt{leaf\_class}. Nejprve metoda získá pomocí \texttt{x3::get} vloženou instanci \texttt{ParserContext}, poté zavolá metodu \texttt{isLeaf} s aktuálním uzlem a na~základě výsledku může parseru říct, že pravidlo ve~skutečnosti neproběhlo úspěšně (pomocí \verb¨_pass(context) = false;¨).
+Ukázka~\ref{on:success} ukazuje, jak vypadá \verb¨on_success¨ metoda třídy \texttt{leaf\_class}. Nejprve metoda získá pomocí \texttt{x3::get} vloženou instanci \texttt{ParserContext}, poté zavolá metodu \texttt{isLeaf} s aktuálním uzlem a na~základě výsledku může parseru říct, že pravidlo neproběhlo úspěšně (pomocí \verb¨_pass(context) = false;¨).
 
 \begin{listing}[H]
 \begin{minted}{c++}
@@ -620,7 +623,7 @@ lineEditor.set_completion_callback(
 \end{listing}
 
 \subsection{Metoda \texttt{completeCommand}}
-Generování doplňovacích řetězců (návrhů) probíhá v metodě \texttt{completeCommand}. Vstupní řetězec se parsuje stejným způsobem jako při použití metody \texttt{parseCommand}, ale při volání funkce \texttt{phrase\_parse} se výstupní strkutura zahazuje. Místo toho slouží jako výstupní hodnota proměnná \texttt{m\_completions} v třídě \texttt{ParserContext}. Do~této proměnné se pomocí speciálních \uv{pseudopravidel} ukládají návrhy na~doplnění příkazů. V závislosti na~tom, kdy parsování končí (nemusí končit úspěšně, jelikož nemusím vždy doplňovat kompletní příkaz), se použijí poslední vygenerované návrhy.
+Generování doplňovacích řetězců (návrhů) probíhá v metodě \texttt{completeCommand}. Implementace této metody je velmi podobná implementaci \texttt{parseCommand}, ale při volání funkce \texttt{x3::phrase\_parse} se výstupní struktura zahazuje. Místo toho slouží jako návratová hodnota proměnná \texttt{m\_completions}, která je součástí třídy \texttt{ParserContext}. Do~této proměnné se pomocí speciálních \uv{pseudopravidel} ukládají návrhy na~doplnění příkazů. V závislosti na~tom, kdy parsování končí (nemusí končit úspěšně, jelikož nemusím vždy doplňovat kompletní příkaz), se použijí poslední vygenerované návrhy.
 
 Vzhledem k tomu, že parser generuje návrhy jen v určitých momentech (například mezi jednotlivými názvy uzlů) a parser nezpracuje vždy celý vstup, je třeba implementovat filtrování návrhů. Toto se děje pomocí pomocné funkce \texttt{filterByPrefix}.
 
@@ -635,7 +638,8 @@ Jeden z podporovaných doplňování je dokončení názvu příkazů, jehož im
 \begin{minted}{c++}
 boost::mpl::for_each<CommandTypes, boost::type<boost::mpl::_>>(
     [&parserContext](auto cmd) {
-        parserContext.m_suggestions.emplace(commandNamesVisitor()(cmd));
+        parserContext.m_suggestions
+                     .emplace(commandNamesVisitor()(cmd));
 });
 \end{minted}
 \caption{Iterace datových typů \texttt{boost::variant}}\label{createCommandSuggetions}
@@ -663,7 +667,7 @@ Poté, co parser vygeneruje návrhy cest, mohou nastat tři situace. U každé s
         \end{verbatim}
     \item Po~parsování na~vstupu nezbyly žádné znaky, ale aktuální vstup lze pořád doplnit.
 
-        Například, pokud by existovaly validní cesty \texttt{first/min} a \texttt{first/minister} a uživatel zadá příkaz \texttt{cd first/min}. V tento moment může uživatel buď příkaz potvrdit (jelikož \texttt{first/min} je validní cesta), anebo vygenerovat návrhy a případně zvolit cestu \texttt{first/minister}. Tento případ se liší od~situace 2 tím, že parser zpracoval veškerý vstup. To znamená, že nemohu použít řetězec \texttt{min} pro filtrování návrhů (protože parser zpracoval veškerý vstup). Kdyby uzel \texttt{first/min} neexistoval, parser by se zastavil už na~lomítku. Je tedy nutné zjistit, kde přesně byly návrhy vygenerovány.
+        Například, pokud by existovaly cesty \texttt{first/min} a \texttt{first/minister} a uživatel zadá příkaz \texttt{cd first/min}. V tento moment může uživatel buď příkaz potvrdit (jelikož \texttt{first/min} je validní cesta), anebo vygenerovat návrhy a případně zvolit cestu \texttt{first/minister}. Tento případ se liší od~situace 2 tím, že parser zpracoval veškerý vstup. To znamená, že nemohu použít řetězec \texttt{min} pro filtrování návrhů (protože parser zpracoval veškerý vstup). Kdyby uzel \texttt{first/min} neexistoval, parser by se zastavil už na~lomítku. Je tedy nutné zjistit, kde přesně byly návrhy vygenerovány.
         \begin{verbatim}
         /> cd first/min
                       ^ parser skončil zde
@@ -773,7 +777,7 @@ Třída \texttt{Interpreter} dále obsahuje různé pomocné metody, které jsou
 
 
 \section{Přístup k úložišti konfigurace}\label{datastore:access}
-Třída \texttt{Interpreter} používá pro přístup k datovému úložišti rozhraní \texttt{DatastoreAccess}. Součástí tohoto rozhraní jsou metody určené k získávání a odesílání konfigurace na~vzdálený server. Výhodou volby abstraktního rozhraní je, že třída \texttt{Interpreter} nezávisí na~konkrétním implementace přenosu dat mezi datovým úložištěm a implementovaným programem. To znamená, že se implementovaný program může připojit k jakémukoliv typu datového úložiště (podmínkou ovšem je, že musí používat k validaci modely \textit{YANG}). Kromě protokolu \textit{NETCONF} používá \textit{YANG} k validaci konfigurace i program \textit{sysrepo}\,\cite{sysrepo}.
+Třída \texttt{Interpreter} používá k přístup k datovému úložišti abstraktní rozhraní \texttt{DatastoreAccess}. Součástí tohoto rozhraní jsou metody určené k získávání a odesílání konfigurace na~vzdálený server. Výhodou volby abstraktního rozhraní je, že třída \texttt{Interpreter} nezávisí na~konkrétním implementace přenosu dat mezi datovým úložištěm a implementovaným programem. To znamená, že se implementovaný program může připojit k jakémukoliv typu datového úložiště (podmínkou ovšem je, že musí používat k validaci modely \textit{YANG}). Kromě protokolu \textit{NETCONF} používá \textit{YANG} k validaci konfigurace i program \textit{sysrepo}\,\cite{sysrepo}.
 
 \subsection{SysrepoAccess}
 Před implementací komunikace pomocí protokolu \textit{NETCONF} bylo třeba vyladit parser a uživatelské rozhraní. Z tohoto důvodu jsem nejprve implementoval třídu \texttt{SysrepoAccess}, která komunikuje pomocí klientské knihovny \textit{sysrepo}. Použití této knihovny je velmi jednoduché: odpadá jakákoliv nutnost znalosti \textit{NETCONFu}. \textit{Sysrepo} pomocí tohoto protokolu nekomunikuje. Rozhraní \textit{sysrepa} je poměrně přímočaré: pro nastavování hodnot libovolných uzlů slouží metoda \texttt{sysrepo::set\_item}. Naopak, pro získání konfigurace slouží metoda \texttt{sysrepo::get\_items}. Kvůli jednoduchosti tohoto rozhraní jsem při návrhu a testování nemusel řešit, jakým způsobem způsobem funguje protokol \textit{NETCONF}.
@@ -808,7 +812,7 @@ TEST_CASE("isEven")
     REQUIRE(isEven(a));
 }
 \end{minted}
-\caption{Ukázka testování pomocí knihovny \texttt{Catch2}}\label{catch:example}
+\caption{Ukázka testování pomocí knihovny \textit{Catch2}}\label{catch:example}
 \end{listing}
 
 \subsection{Testování parseru}
@@ -823,11 +827,11 @@ Aby byla zajištěna správná funkčnost třídy \texttt{YangSchema}, je tato t
 
 
 \section{Porovnání s existujícími řešeními}
-Nevýhodou programů, které implementují komunikaci pomocí protokolu \textit{NETCONF}, o kterých jsem psal v kapitole~\ref{existing} je, že pohlížejí na~komunikaci tak, jak funguje komunikace přes \textit{NETCONF}. Důsledkem toho je, že uživatel musí protokol podrobně znát. Program, který jsem implementoval já, se od \textit{NETCONF} abstrahuje, a důkladná znalost není potřeba.
+Nevýhodou programů, které implementují komunikaci pomocí \textit{NETCONF}, o kterých jsem psal v kapitole~\ref{existing} je, že pohlížejí na~komunikaci tak, jak funguje komunikace přes \textit{NETCONF}. Důsledkem toho je, že uživatel musí protokol podrobně znát. Program, který jsem implementoval já, se od \textit{NETCONF} abstrahuje, a důkladná znalost není potřeba.
 
-Na ukázku porovnám svůj program s programem \textit{Netopeer2-cli}. Jako příkladovou úlohu zvolím nastavení hodnoty uzlu \texttt{example:leafInt} na~\texttt{5}. V ukázce~\ref{netopeer:example} je vidět jak by mohlo vypadat provedení této akce v programu \textit{Netopeer2-cli}. Již na~první pohled je vidět, že se zde vyskytuje příkaz \texttt{edit-config}, což implikuje to, že uživatel musí vědět, kterou \textit{NETCONF} zprávu použít.
+Na ukázku porovnám svůj program s programem \textit{Netopeer2-cli}. Jako příklad zvolím nastavení hodnoty uzlu \texttt{example:leafInt} na~\texttt{5}. V ukázce~\ref{netopeer:example} je vidět jak by mohlo vypadat provedení této akce v programu \textit{Netopeer2-cli}. Již na~první pohled je vidět, že se zde vyskytuje příkaz \texttt{edit-config}, což implikuje to, že uživatel musí vědět, kterou \textit{NETCONF} zprávu použít.
 
-Ukázka~\ref{set:example} ukazuje, jak něčeho podobného docílit v mnou implementovaném programu, který nevyžaduje znalost protokolu \textit{NETCONF}. Výhodou mého programu je také to, že požadovaná hodnota je přímo součástí příkazu. Program \textit{Netopeer2-cli} po~zadání příkazu \texttt{edit-config} otevře editor, kde musí uživatel manuálně zadat požadovanou konfiguraci v přesném formátu, validním pro \texttt{NETCONF}. V neposlední řadě, můj program také nabízí automatické doplňování názvů uzlů (lze také vidět na~ukázce~\ref{set:example}), což uživatel mohl použít v případě, že by neznal přesný název uzlu.
+Ukázka~\ref{set:example} ukazuje, jak něčeho podobného docílit v mnou implementovaném programu, který nevyžaduje znalost protokolu \textit{NETCONF}. Výhodou mého programu je také to, že požadovaná hodnota je přímo součástí příkazu. Program \textit{Netopeer2-cli} po~zadání příkazu \texttt{edit-config} otevře editor, kde musí uživatel manuálně zadat požadovanou konfiguraci v přesném formátu, validním pro \textit{NETCONF}. V neposlední řadě, můj program také nabízí automatické doplňování názvů uzlů (lze také vidět na~ukázce~\ref{set:example}), což uživatel mohl použít v případě, že by neznal přesný název uzlu.
 \begin{listing}
 \begin{verbatim}
 // ... připojení k serveru ...
