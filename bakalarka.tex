@@ -31,7 +31,7 @@
 % TODO: dopsat
 \acknowledgements{Doplňte, máte-li komu a za co děkovat. V~opačném případě úplně odstraňte tento příkaz.}
 
-\abstractCS{Tato práce se zabývá vytvořením interaktivní konzolové aplikace sloužící ke~konfiguraci síťových zařízení pomocí protokolu \textit{NETCONF}. Tento program slouží jako alternativa k dostupným, méně intuitivním, řešením. Toho dosahuje přívětivým uživatelským rozhraním implementovaným pomocí kniho\-vny \textit{replxx}.
+\abstractCS{Tato práce se zabývá návrhem a implementací interaktivní konzolové aplikace sloužící ke~konfiguraci síťových zařízení pomocí protokolu \textit{NETCONF}. Tento program slouží jako alternativa k dostupným, méně intuitivním, řešením. Toho dosahuje přívětivým uživatelským rozhraním implementovaným pomocí kniho\-vny \textit{replxx}.
 
 Řešení využívá generátorů parserů \textit{Boost Spirit X3}, které jsou definovány deklarativně, knihovnu \textit{libyang} pro manipulaci s modelovacím jazykem \textit{YANG} a \textit{libnetconf} pro komunikaci přes protokol \textit{NETCONF}.
 }
@@ -133,7 +133,7 @@ Při zahájení komunikace si server i klient vymění \uv{hello} zprávu, ve~kt
 Tato zpráva slouží k získání libovolné části konfiguračního stromu. To může být konfigurace anebo stavová informace. Server odpovídá zprávou \texttt{<rpc-reply>} s požadovanými daty nebo zprávou \texttt{<rpc-error>} při chybě.
 
 \subsection{\texttt{<get-config>}}
-Tato zpráva se podobá zprávě \texttt{<get>}. Rozdíl je v tom, že pomocí \texttt{<get-config>} lze získat konfiguraci z různých druhů datových úložišť. \textit{NETCONF} podporuje datová úložiště trojího druhu:
+Tato zpráva se podobá zprávě \texttt{<get>}. Liší se v tom, že pomocí \texttt{<get-config>} lze získat konfiguraci z různých druhů datových úložišť. \textit{NETCONF} podporuje datová úložiště trojího druhu:
 \begin{description}
     \item[running]{aktuální platná konfigurace}
     \item[startup]{startovní konfigurace, která se aplikuje při spuštění zařízení}
@@ -196,9 +196,13 @@ module example-schema {
 
 Adresovat lze dvěma způsoby: relativními cestami a absolutními cestami. Relativní cesty se vztahují ke~kontextu, v kterém uživatel je. Pokud je aktuální kontext uzel \texttt{example-schema:foo} a chceme adresovat uzel \texttt{bar}, není již třeba v cestě uzel \texttt{foo} zahrnovat a ani není třeba specifikovat kontextový modul. Na~druhou stranu, absolutní cesty nedbají na~kontext a chovají se, jako kdyby žádný kontext neexistoval. Absolutní cesty se zapisují s lomítkem (\texttt{/}) na~začátku.
 
-Pokud chceme adresovat konkrétní instanci uzlu typu \texttt{list} je třeba zadat všechny hodnoty klíčů. Syntaxe pro zadávání klíčů vypadá takto: \verb¨[název_klice=hodnota]¨. V~ukázce~\ref{list:example} je vidět definice \texttt{listu}. Tento list je definovaný klíči \texttt{name} a \texttt{surname}. K adresaci instance tohoto \texttt{listu} je tedy třeba zadat hodnoty obou dvou klíčů, každý v hranaté závorce dle zmíněné syntaxe. V tomto případě by adresace instance \texttt{listu} s názvem \texttt{person} mohla vypadat například takto: \verb¨person[name=Václav][surname=Kubernát]¨.
+Pokud chceme adresovat konkrétní instanci uzlu typu \texttt{list} je třeba zadat všechny hodnoty klíčů. Syntaxe pro zadávání klíčů vypadá takto:
+\begin{verbatim}
+[název_klice=hodnota]
+\end{verbatim}
+V~ukázce~\ref{list:example} je vidět definice \texttt{listu}. Tento list je definovaný klíči \texttt{name} a \texttt{surname}. K adresaci instance tohoto \texttt{listu} je tedy třeba zadat hodnoty obou dvou klíčů, každý v hranaté závorce dle zmíněné syntaxe. V tomto případě by adresace instance \texttt{listu} s názvem \texttt{person} mohla vypadat například takto: \verb¨person[name=Václav][surname=Kubernát]¨.
 
-\begin{listing}
+\begin{listing}[H]
 \begin{verbatim}
 list person {
     key "name surname";
@@ -644,7 +648,7 @@ lineEditor.set_completion_callback(
 \end{listing}
 
 \subsection{Metoda \texttt{completeCommand}}
-Generování doplňovacích řetězců (návrhů) probíhá v metodě \texttt{completeCommand}. Implementace této metody je velmi podobná implementaci \texttt{parseCommand}, ale při volání funkce \texttt{x3::phrase\_parse} se výstupní struktura zahazuje. Místo toho slouží jako návratová hodnota proměnná \texttt{m\_completions}, která je součástí třídy \texttt{ParserContext}. Do~této proměnné se pomocí speciálních \uv{pseudopravidel} ukládají návrhy na~doplnění příkazů. V závislosti na~tom, kdy parsování končí (nemusí končit úspěšně, jelikož nemusím vždy doplňovat kompletní příkaz), se použijí poslední vygenerované návrhy.
+Generování doplňovacích řetězců probíhá v metodě \texttt{completeCommand}. Implementace této metody je velmi podobná implementaci \texttt{parseCommand}, ale při volání funkce \texttt{x3::phrase\_parse} se výstupní struktura zahazuje. Místo toho slouží jako návratová hodnota proměnná \texttt{m\_completions}, která je součástí třídy \texttt{ParserContext}. Do~této proměnné se pomocí speciálních \uv{pseudopravidel} ukládají návrhy na~doplnění příkazů. V závislosti na~tom, kdy parsování končí (nemusí končit úspěšně, jelikož nemusím vždy doplňovat kompletní příkaz), se použijí poslední vygenerované návrhy.
 
 Vzhledem k tomu, že parser generuje návrhy jen v určitých momentech (například mezi jednotlivými názvy uzlů) a parser nezpracuje vždy celý vstup, je třeba implementovat filtrování návrhů. Toto se děje pomocí pomocné funkce \texttt{filterByPrefix}.
 
@@ -764,7 +768,7 @@ Tyto situace lze rozlišit podle toho, jestli je doplnění jednoznačné (tj.\ 
 
 
 \section{Interpretace příkazů}\label{interpreter}
-Poté, co data opustí parser ve~formě strojově čitelných struktur, je třeba příkazy vykonat (interpretovat). K tomu slouží třída \texttt{Interpreter}, jejíž design odpovídá návrhovému vzoru \textit{visitor}. Principem tohoto návrhového vzoru je oddělit data a funkcionalitu, která je nad těmito daty prováděna. V tomto případě jsou tato data struktury, které získávám pomocí knihovny \textit{Spirit}. Třída \texttt{boost::variant}, jenž je datovým typem výsledné struktury knihovny \textit{Spirit}, podporuje tento návrhový vzor nativně pomocí funkce \texttt{boost::apply\_visitor}.
+Poté, co data opustí parser ve~formě strojově čitelných struktur, je třeba příkazy vykonat (interpretovat). K tomu slouží třída \texttt{Interpreter}, jejíž design odpovídá návrhovému vzoru \textit{visitor}. Principem tohoto návrhového vzoru je oddělit data a funkcionalitu, která je nad těmito daty prováděna. V tomto případě jsou tato data struktury, které získávám pomocí knihovny \textit{Spirit}. Třída \texttt{boost::variant}, jenž je datovým typem výsledné struktury knihovny \textit{Spirit}, podporuje tento návrhový vzor pomocí funkce \texttt{boost::apply\_visitor}.
 
 V \Cpp{} se \textit{visitor} implementuje pomocí přetížení operátoru závorky (\texttt{()}). Použití třídy \texttt{Interpreter} je vidět v ukázce~\ref{interpreter:invocation}. Metoda \texttt{parseCommand} nejprve vytvoří výslednou strukturu. Funkce \texttt{boost::apply\_visitor} přijímá dva parametry: instanci třídy, která podléhá vzoru \textit{visitor} (zde je vždy vytvořena nová instance), a proměnnou typu \texttt{boost::variant}, s kterou bude \textit{visitor} použit. Tato funkce zavolá na~\textit{visitor} operátor závorky s argumentem, který jsme předali jako druhý. Celý tento kód je obalen blokem \texttt{try}, který případě odchytí výjimku vyvolanou metodou \texttt{parseCommand}.
 
@@ -866,7 +870,7 @@ Testuje se jak pomocí \uv{pozitivních} testů, tak \uv{negativních} testů. V
 Kromě samotného parsování se rovněž testuje schopnost parseru generovat návrhy na~doplňování. Testování doplňování je velmi důležité, neboť doplňování je klíčovou vlastností implementovaného programu. Většina funkcí, o kterých jsem psal v kapitole~\ref{completion}, je tudíž řádně otestována.
 
 \subsection{Unit testy třídy \texttt{YangSchema}}
-Aby byla zajištěna správná funkčnost třídy \texttt{YangSchema}, je tato třída testována pomocí \textit{unit testů}. Unit testy jsou jednoduchou metodou jak otestovat jednu elementární část programu. Každá metoda v této třídě je testována na~příkladovém modelu \textit{YANG}. Opět se zde vyskytují pozitivní i negativní testy.
+Aby byla zajištěna správná funkčnost třídy \texttt{YangSchema}, je tato třída testována pomocí \textit{unit testů}. Unit testy jsou jednoduchou metodou jak otestovat jednu elementární část programu. Každá metoda v této třídě je testována modelu \textit{YANG}. Opět se zde vyskytují pozitivní i negativní testy.
 
 
 \section{Porovnání s existujícími řešeními}
@@ -874,8 +878,7 @@ Nevýhodou programů, které implementují komunikaci pomocí \textit{NETCONF}, 
 
 Na ukázku porovnám svůj program s programem \textit{Netopeer2-cli}. Jako příklad zvolím nastavení hodnoty uzlu \texttt{example:leafInt} na~\texttt{5}. V ukázce~\ref{netopeer:example} je vidět jak by mohlo vypadat provedení této akce v programu \textit{Netopeer2-cli}. Již na~první pohled je vidět, že se zde vyskytuje příkaz \texttt{edit-config}, což implikuje to, že uživatel musí vědět, kterou \textit{NETCONF} zprávu použít.
 
-Ukázka~\ref{set:example} ukazuje, jak něčeho podobného docílit v mnou implementovaném programu, který nevyžaduje znalost protokolu \textit{NETCONF}. Výhodou mého programu je také to, že požadovaná hodnota je přímo součástí příkazu. Program \textit{Netopeer2-cli} po~zadání příkazu \texttt{edit-config} otevře editor, kde musí uživatel manuálně zadat požadovanou konfiguraci v přesném formátu, validním pro \textit{NETCONF}. V neposlední řadě, můj program také nabízí automatické doplňování názvů uzlů (lze také vidět na~ukázce~\ref{set:example}), což uživatel mohl použít v případě, že by neznal přesný název uzlu.
-\begin{listing}
+\begin{listing}[H]
 \begin{verbatim}
 // ... připojení k serveru ...
 > edit-config --target --config
@@ -887,7 +890,8 @@ OK
 \caption{Nastavení hodnoty v \textit{Netopeer2-cli}\label{netopeer:example}}
 \end{listing}
 
-\begin{listing}
+Ukázka~\ref{set:example} ukazuje, jak něčeho podobného docílit v mnou implementovaném programu, který nevyžaduje znalost protokolu \textit{NETCONF}. Výhodou mého programu je také to, že požadovaná hodnota je přímo součástí příkazu. Program \textit{Netopeer2-cli} po~zadání příkazu \texttt{edit-config} otevře editor, kde musí uživatel manuálně zadat požadovanou konfiguraci v přesném formátu, validním pro \textit{NETCONF}. V neposlední řadě, můj program také nabízí automatické doplňování názvů uzlů (lze také vidět na~ukázce~\ref{set:example}), což uživatel využije v případě, že nezná přesný název uzlu.
+\begin{listing}[H]
 \begin{verbatim}
 // ... připojení k serveru ...
 > set
@@ -903,13 +907,13 @@ example:leafInt example:leafString
 \begin{conclusion}
 Cílem této práce bylo vytvořit konzolovou aplikaci, pomocí které bude možné vzdáleně měnit konfiguraci síťových zařízení založenou na~modelech \textit{YANG} přes protokol \textit{NETCONF}, bez důkladné znalosti obou technologií. Existující řešení, které implementují klientskou část protokolu \textit{NETCONF} ztrácí z hlediska intuitivity a jejich použití je komplikované.
 
-V teoretické části práce jsem popsal nezbytné informace o technologií a konstruktech použitých ve~zbytku práce. Kromě protokolu \textit{NETCONF} a modelovacího jazyka \textit{YANG} to byl také úvod do~teorie formálních jazyků a gramatik, kterou využívám jako základ pro implementaci programu. Zmínil jsem se zde také o EBNF -- způsobu zápisu formálních gramatik.
+V teoretické části práce jsem popsal nezbytné informace o použitých technologiích a konstruktech ve~zbytku práce. Kromě protokolu \textit{NETCONF} a modelovacího jazyka \textit{YANG} to byl také úvod do~teorie formálních jazyků a gramatik, kterou využívám jako základ pro implementaci programu. Zmínil jsem se zde také o EBNF -- způsobu zápisu formálních gramatik.
 
 V návrhové části jsem navrhl syntaxi vstupních dat a také způsob, jakým se uživatel orientuje ve~stromech tvořených modely \textit{YANG}. Dále jsem popsal sadu příkazů, jenž slouží k prozkoumávání stromů a také editaci dat na~vzdáleném serveru.
 
-V implementační části popisuji především práci s knihovnou \textit{Boost Spirit X3} a jakými gramatikami jsem implementoval jednotlivé příkazy navržené v návrhovéí části. Píši zde také, jakým způsobem proudí data programem a které součásti ho zpracovávají. Kromě toho zde vysvětluji, co všechno aplikace podporuje z hlediska automatického doplňování a také jakými prostředky tuto funkcionalitu implementuji.
+V implementační části popisuji především práci s knihovnou \textit{Boost Spirit X3} a jakými gramatikami jsem implementoval jednotlivé příkazy navržené v návrhové části. Píši zde také, jakým způsobem proudí data programem a  jakým způsobem je jednotlivé součásti zpracovávají. Kromě toho zde vysvětluji, co všechno aplikace podporuje z hlediska automatického doplňování a také jakými prostředky tuto funkcionalitu implementuji.
 
-V testovací části se zaměřuji na~popis procesu testování. Vysvětluji, jakým způsobem testuji nejdůležitější součásti aplikace. Následně použiji program \textit{Netopeer2-cli} pro demonstraci silných vlastností implementovaného programu.
+V kapitole Testování se zaměřuji na~popis procesu testování. Vysvětluji, jakým způsobem testuji nejdůležitější součásti aplikace. Následně použiji program \textit{Netopeer2-cli} pro demonstraci silných vlastností mnou implementovaného programu.
 
 Implementovaný program v aktuálním stavu nepodporuje veškeré konstrukty jazyka \textit{YANG} a protokolu \textit{NETCONF}, čímž zaostává za~programy, které implementují tyto dvě technologie mnohem důkladněji. Nicméně, hlavním přínosem této práce je především vytvoření uživatelského rozhraní a syntaxe, jenž se abstrahuje od~protokolu \textit{NETCONF}. Do~budoucna je možné aplikaci rozvíjet, především o další funkce jazyka \textit{YANG} a protokolu \textit{NETCONF}.
 \end{conclusion}
@@ -918,14 +922,8 @@ Implementovaný program v aktuálním stavu nepodporuje veškeré konstrukty jaz
 
 \appendix
 
-\chapter{Seznam použitých zkratek}
-% \printglossaries
-\begin{description}
-    \item[GUI] Graphical user interface
-    \item[XML] Extensible markup language
-\end{description}
-
 \chapter{Obsah přiloženého CD}
+% TODO: toto dopsat
 
 %\begin{figure}
 %	\dirtree{
