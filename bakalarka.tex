@@ -7,9 +7,10 @@
 % from https://tex.stackexchange.com/a/251025
 \usepackage{relsize}
 \usepackage{xspace}
+
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
-\usepackage[backend=biber,style=iso-numeric,sortlocale=cs_CZ,autolang=other,bibencoding=UTF8]{biblatex}
+\usepackage[backend=biber,style=iso-numeric,sortlocale=cs_CZ,autolang=other,bibencoding=UTF8,block=ragged]{biblatex}
 \usepackage[outputdir=build]{minted}
 \renewcommand{\listingscaption}{Ukázka zdrojového kódu} %místo Listing ve výpisu bude Výpis kódu
 \renewcommand{\listoflistingscaption}{Seznam ukázek zdrojového kódu} %místo List of Listings vypíšeme Seznam výpisů kódu
@@ -77,14 +78,15 @@ Definice lze dělit dle dvou kritérií:
         \end{itemize}
     \item Dle toho, jestli vytváří nový uzel
         \begin{itemize}
-            \item Definice, které vytváří nový uzel mají syntaxi \texttt{<typ~uzlu>~<název~uzlu}. Název musí být unikátní.
+            \item Definice, které vytváří nový uzel. Jejich syntaxe vypadá takto:
+                \texttt{<typ~uzlu>~<název~uzlu}. Název musí být unikátní.
             \item Definice, které nevytváří nový uzel.
         \end{itemize}
 \end{enumerate}
 
 Dále popisuji, co znamenají definice z ukázky~\ref{yang:ukazka}.\footnote{ačkoli lze jednotlivé názvy přeložit do~češtiny, budu používat anglická označení, aby nedošlo k záměně některých termínů (list -- leaf, list -- seznam)}
 
-\begin{listing}
+\begin{listing}[H]
 \begin{verbatim}
 module example-schema {
     prefix ex;
@@ -194,7 +196,24 @@ module example-schema {
 
 Adresovat lze dvěma způsoby: relativními cestami a absolutními cestami. Relativní cesty se vztahují ke~kontextu, v kterém uživatel je. Pokud je aktuální kontext uzel \texttt{example-schema:foo} a chceme adresovat uzel \texttt{bar}, není již třeba v cestě uzel \texttt{foo} zahrnovat a ani není třeba specifikovat kontextový modul. Na~druhou stranu, absolutní cesty nedbají na~kontext a chovají se, jako kdyby žádný kontext neexistoval. Absolutní cesty se zapisují s lomítkem (\texttt{/}) na~začátku.
 
-Dále se cesty rozdělují na~schematické a datové. Rozdíl mezi nimi je ten, že pomocí datových cest můžeme adresovat instance uzlů typu \texttt{list}. Instance \texttt{listu} se adresují pomocí jejich klíčů. Syntaxe pro zadání klíčů vypadá takto: \verb¨[název_klice=hodnota]¨. Tímto způsobem postupně vypíšeme všechny hodnoty klíčů požadované instance. Důvodem pro zavedení tohoto rozlišení je, že pro některé příkazy jsou hodnoty klíčů bezvýznamné (například pro to, že nemanipulují s daty).
+Pokud chceme adresovat konkrétní instanci uzlu typu \texttt{list} je třeba zadat všechny hodnoty klíčů. Syntaxe pro zadávání klíčů vypadá takto: \verb¨[název_klice=hodnota]¨. V~ukázce~\ref{list:example} je vidět definice \texttt{listu}. Tento list je definovaný klíči \texttt{name} a \texttt{surname}. K adresaci instance tohoto \texttt{listu} je tedy třeba zadat hodnoty obou dvou klíčů, každý v hranaté závorce dle zmíněné syntaxe. V tomto případě by adresace instance \texttt{listu} s názvem \texttt{person} mohla vypadat například takto: \verb¨person[name=Václav][surname=Kubernát]¨.
+
+\begin{listing}
+\begin{verbatim}
+list person {
+    key "name surname";
+    leaf name {
+        type string;
+    }
+    leaf surname {
+        type string;
+    }
+}
+\end{verbatim}
+\caption{Příklad definice \texttt{listu}}\label{list:example}
+\end{listing}
+
+Cesty rozdělují na~schematické a datové. Rozdíl mezi nimi je ten, že pomocí schematické cesty lze použít pouze s příkazy, které nemanipulují s daty, jelikož k manipulaci s daty je třeba jednoznačně určit všechny instance \texttt{listů}. V datové cestě je třeba definovat klíče všech \texttt{listů}, které chceme v cestě obsáhnout.
 
 \section{Syntaxe}\label{syntaxe}
 V této podkapitole se zabývám syntaxí a popisu jednotlivých příkazů. Základní syntaxe programu vypadá takto:
@@ -202,7 +221,7 @@ V této podkapitole se zabývám syntaxí a popisu jednotlivých příkazů. Zá
 /> <nazev prikazu> <prepinace> <argumenty>
 \end{verbatim}
 Pohyb stromem funguje podobně jako při procházení souborovým systémem na~počítači. V ukázce~\ref{ukazka:program} je vidět příklad použití programu. Před napsáním příkazu program vždy vypíše aktuální kontext (uzel).
- 
+
 \begin{listing}[H]
 \begin{verbatim}
 /> ls
@@ -287,7 +306,7 @@ set <path> <value>
 Argument \texttt{path} určuje cestu k \texttt{leafu}, jehož hodnota bude upravena a argument \texttt{value} určuje novou hodnotu \texttt{leafu}. Cesta musí být datová.
 
 \subsection{\texttt{create} a \texttt{delete}}
-Příkazy \texttt{create} a \texttt{delete} slouží k vytváření, resp.\ mazání \texttt{presence containerů} a instancí uzlů typu \texttt{list}. Oba fungují velmi podobně a mají i podobnou syntaxi:
+Příkazy \texttt{create} a \texttt{delete} slouží k vytváření, resp.\ mazání uzlů typu \texttt{presence containeru} a instancí uzlů typu \texttt{list}. Oba fungují velmi podobně a mají i podobnou syntaxi:
 \begin{verbatim}
 create <path>
 delete <path>
@@ -323,16 +342,15 @@ Uživatelské rozhraní je poměrně přímočaré: program cyklicky načítá �
     \item automatické doplňování příkazů
     \item ukládání historie příkazů
 \end{itemize}
-Ideální knihovna by měla mít nativní \Cpp{} rozhraní (ačkoliv lze v \Cpp{} relativně jednoduše použít i C knihovny) a být header-only, tedy, že k jejímu použití stačí přidat její hlavičkový soubor a všechny implementační detaily jsou obsaženy v něm.
 
 Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}\,\cite{readline}. \textit{Readline} umožňuje editaci příkazové řádky pomocí mnoha klávesových zkratek, převzatých z textových editorů \textit{EMACS} a \textit{Vi} a také velmi intuitivní inkrementální automatické doplňování (tj.\ postupné doplňování vícenásobným stisknutím klávesové zkratky). Nicméně, tato knihovna je již poměrně zastaralá, má pouze rozhraní v jazyce C, a tudíž vhodnou volbou pro moji aplikaci. Další nevýhodou je její implementace: \textit{Readline} obsahuje přibližně 20 tisíc řádek kódu především kvůli kompatibilitě s mnoha emulátory terminálů. V dnešní době většina terminálových aplikací podporuje základní VT100\footnote{terminál, jenž se stal předlohou pro novodobé terminálové aplikace} escape sekvence\footnote{kontrolní znaky, které slouží k ovládání terminálu; například mazání znaků nebo pohyb kurzorem} a tudíž není třeba zastaralé terminály podporovat.\cite{linenoise-readme}
 
-Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} z hlediska velikosti zdrojového kódu velmi malá -- obsahuje zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} je napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití knihovny s rozhraním v jazyce C, jako například absence podpory tříd\footnote{jazyk C není objektově orientovaný} a nutnost použití globálních proměnných.\footnote{například k definování funkce pro automatické doplňování} Zároveň je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální). Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Pro svůj program jsem tedy zvolil knihovnu \textit{replxx}.
+Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} z hlediska velikosti zdrojového kódu velmi malá -- obsahuje zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} je napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití knihovny s rozhraním v jazyce C, jako například absence podpory tříd\footnote{jazyk C není objektově orientovaný} a nutnost použití globálních proměnných.\footnote{například k definování funkce pro automatické doplňování} Zároveň je header-only\footnote{header-only knihovny obsahují pouze hlavičkové soubory, což znamená, že je není třeba separátně kompilovat}. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální). Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Pro svůj program jsem tedy zvolil knihovnu \textit{replxx}.
 
 \section{Zpracování vstupu pomocí \textit{Boost Spirit X3}}\label{spirit:intro}
 Ke zpracování gramatik příkazů je potřeba parser.\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na~strojově čitelný výstup} Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na~základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
-\subsection{\textit{Boost Spirit X3}}\todo{Možná nadpisy bez textit? YANG nadpis to třeba nemá}
+\subsection{\textit{Boost Spirit X3}}
 \textit{Boost Spirit X3} je knihovna určená k vytváření parserů v jazyce \Cpp{}. Je součástí sady knihoven \textit{Boost}. Jednou z hlavních výhod \textit{Spiritu} je, že lze gramatiky zadávat přímo do~zdrojového kódu výhradně pomocí prostředků jazyka -- operátorů\footnote{například plus, minus apod.} a \Cpp{} šablon. \Cpp{} umožňuje operátory předefinovat a tím změnit jejich funkcionalitu takřka libovolně. Důsledkem této vlastnosti je, že není potřeba spouštět žádný preprocesor\footnote{program, který transformuje zdrojový kód před jeho vlastním zpracováním}, který by převedl speciální syntaxi parseru do~validního \Cpp{} kódu. V následujících kapitolách vysvětlím, jakým způsobem lze \textit{Spirit} používat.
 
 \subsection{Základní pravidla}
@@ -351,7 +369,7 @@ Ke skládání pravidel ve~\textit{Spiritu} slouží \Cpp{} operátory. Operáto
 \end{description}
 
 \subsection{Definice pravidel ve~\textit{Spiritu}}
-Definovat pravidla lze dvěma způsoby. Jeden z nich je pomocí tzv.\ \texttt{auto} pravidel. \texttt{auto} pravidla využívají \textit{type inference}, což je funkce \Cpp{}, která automaticky zjistí, o jaký typ proměnné se jedná a uživatel ho nemusí zadávat manuálně. Například deklarace \verb¨auto a = 0;¨ automaticky vyhodnotí, že datový typ proměnně \texttt{a} by měl být \texttt{int}. Vzhledem k tomu, že datový typ pravidel je takřka nemožné určit manuálně (název datového typu složitějších pravidel může mít kvůli šablonám i tisíce znaků), je tedy klíčové slovo \texttt{auto} téměř nezbytné. \texttt{auto} pravidla lze vidět na~ukázkách~\ref{spirit:grammar}~a~\ref{spirit:nonterminals}. Pro jednoduché parsery často \texttt{auto} pravidla stačí. Pro složitější parsery je třeba použít pokročilou formu definice pravidel, o které se zmiňuji v kapitole~\ref{advanced:rules}.
+Definovat pravidla lze dvěma způsoby. Jeden z nich je pomocí tzv.\ \texttt{auto} pravidel. \texttt{auto} pravidla využívají \textit{type inference}, což je funkce \Cpp{}, která automaticky zjistí, o jaký typ proměnné se jedná a uživatel ho nemusí zadávat manuálně. Například deklarace \verb¨auto a = 0;¨ automaticky vyhodnotí, že datový typ proměnně \texttt{a} by měl být \texttt{int}. Vzhledem k tomu, že datový typ pravidel je takřka nemožné určit manuálně (název datového typu složitějších pravidel může mít kvůli šablonám i tisíce znaků), je tedy klíčové slovo \texttt{auto} téměř nezbytné. \texttt{auto} pravidla lze vidět na~ukázce~\ref{spirit:grammar}. Pro jednoduché parsery často \texttt{auto} pravidla stačí. Pro složitější parsery je třeba použít pokročilou formu definice pravidel, o které se zmiňuji v kapitole~\ref{advanced:rules}.
 
 \subsection{Srovnání zápisu v EBNF a ve~\textit{Spiritu}}
 K zápisu gramatik používá \textit{Spirit} syntaxi, která se podobá syntaxi EBNF\@. Rozdíl spočívá především ve~využití operátorů, které nemají v EBNF obdobný zápis. Důsledkem je, že je gramatika zapsaná pomocí \textit{Spiritu} kratší. V ukázce~\ref{ebnf:quotedValues} je vidět EBNF gramatika, která odpovídá dvěma řetězcům, které jsou obalené uvozovkami.
@@ -479,7 +497,7 @@ Tato metoda obstarává volání vygenerovaného \textit{Spirit} parseru na~uži
 \end{itemize}
 První dvojice iterátorů definuje začátek a konec vstupu.\footnote{vstup je typu \texttt{std::string}; lze ho definovat pomocí iterátoru na~začátek a konec} První argument je datového typu reference z toho důvodu, že \textit{Spirit} tento iterátor iterně používá k pohybu nad vstupním řetězcem. To znamená, že po~dokončení zpracování lze zjistit, na~jakém místě parsování skončilo.
 
-\uv{Skip parser} je speciální parserm, který určuje, které znaky parser přeskočí\footnote{ve \textit{Spiritu} existuje i funkce \texttt{x3::parse}, která tuto funkci nemá} přeskakuje. Výhoda přeskakování je, že se gramatiky programu nemusí starat o mezery a parser jich přeskočí libovolný počet.
+\uv{Skip parser} je speciální parser, který určuje, které znaky parser přeskočí\footnote{ve \textit{Spiritu} existuje i funkce \texttt{x3::parse}, která tuto funkci nemá} přeskakuje. Výhoda přeskakování je, že se gramatiky programu nemusí starat o mezery a parser jich přeskočí libovolný počet.
 
 Posledním argumentem\footnote{funkce je variadická, což znamená, že lze použít i více výstupních parametrů} je reference na~výstupní strukturu. Do~této struktury se ukládá strojově čitelný výstup, jenž je výsledkem celého parsování. Ke~každému netriviálnímu pravidlu\footnote{triviálními pravidly jsou myšleny například pravidla, která parsují přímo jednotlivé znaky (v jejich gramatikách se neobjevují neterminály)} je vytvořena odpovídající struktura. Například pro datovou cestu je vytvořena struktura \texttt{dataPath\_}, pro schematickou cestu struktura \texttt{schemaPath\_} atd. Struktury na~nejvyšší úrovni odpovídají jednotlivým příkazům. To znamená, že pro každý příkaz je vytvořena právě jedna struktura, která ho jednoznačně definuje. Ukázka~\ref{struct:cd} ukazuje definici struktury pro příkaz \texttt{cd\_}. Výstupní parametr parseru má tedy datový typ, který dokáže obsáhnout kteroukoli z těchto struktur. Standardní knihovna \Cpp{} nabízí k tomuto účelu třídu \texttt{std::variant}, nicméně z důvodů popsaných v kapitole~\ref{completing:commands} jsem zvolil třídu \texttt{boost::variant}.
 
@@ -568,7 +586,10 @@ createPathSuggestions >> -(module) >> (container |
 Zde lze již vidět některé konstrukty \textit{YANG}. Za~pravidly \texttt{container}, \texttt{list} a \texttt{leaf} se skrývají gramatiky, které určují platný název uzly v modelu \textit{YANG}. Liší se především v jejich \verb¨on_success¨ metodách. V těchto metodách probíhá zmiňovaná dynamická kontrola názvů (a~druhů) uzlů. V následujících podkapitolách popisuji, jakým způsobem je tato kontrola implementována.
 
 \subsubsection{Rozhraní \texttt{Schema}}
-Ke kontrole cest slouží abstraktní rozhraní \texttt{Schema}. Toto rozhraní obsahuje různé metody pro kontrolu cest jako například \texttt{isLeaf}, která zjišťuje, jestli je uzel s danou cestou uzel typu \texttt{leaf}. Konkrétně je toto rozhraní implementováno jako třída \texttt{StaticSchema}, která je určená k testování, a jako třída \texttt{YangSchema}, která využívá knihovnu \textit{libyang}~\cite{libyang}. \textit{Libyang} je knihovna vytvořená spoečností CESNET, která umožňuje manipulovat s modely \textit{YANG}.
+Ke kontrole cest slouží abstraktní rozhraní \texttt{Schema}. Toto rozhraní obsahuje různé metody pro kontrolu cest jako například \texttt{isLeaf}, která zjišťuje, jestli je uzel s danou cestou uzel typu \texttt{leaf}. Konkrétně je toto rozhraní implementováno jako třída \texttt{StaticSchema}, která je určená k testování, a jako třída \texttt{YangSchema}, o které píšu v následující kapitole.
+
+\subsubsection{Třída \texttt{YangSchema}}
+Třída \texttt{YangSchema} je konkrétní implementací rozhraní \texttt{Schema}, která umožňuje dotazovat se prostřednictvím jejích metod na vlastnosti modelů \textit{YANG}. K tomu třída využívá knihovnu \textit{libyang}~\cite{libyang}. \textit{Libyang} je knihovna vytvořená sdružením CESNET\footnote{CESNET je sdružení, které se zabývá tvořením síťové infrastruktury pro vědecké a vzdělávací instituce}, která umožňuje manipulovat s modely \textit{YANG}.
 
 \subsubsection{Kontrola cest}\label{path:checking}
 Kontrola cest probíhá v \verb¨on_success¨ metodách pravidel pro jednotlivé typy uzlů. Pomocí direktivy \texttt{x3::with} umožňuje \textit{Spirit} vložit do~gramatiky jakýkoliv objekt, který lze poté v těchto metodách získat pomocí funkce \texttt{x3::get}. Pro kontrolu cest by stačilo do~startovacího pravidla\footnote{pravidlo, kde jsou sdruženy pravidlo pro všechny příkazy} vložit objekt typu \texttt{Schema}, nicméně je třeba, aby parser propagoval i nějaké další informace (kromě samotných příkazů) zpět. Proto jsem vytvořil třídu \texttt{ParserContext}, která obsahuje mimo jiné několik proměnných, které jsou potřebné pro validaci cest. Jedna z nich je rozhraní \texttt{Schema} a další je aktuální uzel, v kterém se parser nachází.
@@ -747,7 +768,7 @@ Poté, co data opustí parser ve~formě strojově čitelných struktur, je třeb
 
 V \Cpp{} se \textit{visitor} implementuje pomocí přetížení operátoru závorky (\texttt{()}). Použití třídy \texttt{Interpreter} je vidět v ukázce~\ref{interpreter:invocation}. Metoda \texttt{parseCommand} nejprve vytvoří výslednou strukturu. Funkce \texttt{boost::apply\_visitor} přijímá dva parametry: instanci třídy, která podléhá vzoru \textit{visitor} (zde je vždy vytvořena nová instance), a proměnnou typu \texttt{boost::variant}, s kterou bude \textit{visitor} použit. Tato funkce zavolá na~\textit{visitor} operátor závorky s argumentem, který jsme předali jako druhý. Celý tento kód je obalen blokem \texttt{try}, který případě odchytí výjimku vyvolanou metodou \texttt{parseCommand}.
 
-\begin{listing}
+\begin{listing}[H]
 \begin{minted}{c++}
 try {
     command_ cmd = parser.parseCommand(line, std::cout);
@@ -759,9 +780,9 @@ try {
 \caption{Volání interpreteru}\label{interpreter:invocation}
 \end{listing}
 
-\texttt{Interpreter} slouží pouze jako mezivrstva, která spojuje uživatelské rozhraní a úložiště konfigurace. Jeho implementace spočívá v tom, že pro každý příkaz je přetížený operátor závorky. Pro příkazy bez parametrů je kód velmi přímočarý, jak je vidět na~ukázce~\ref{interpreter:commit:discard} -- spočívá v zavolání jediné metody rozhraní \texttt{DatastoreAccess}. Složitější příkazy již potřebují měnit své chování v závislosti na~parametrech příkazů. Jeden z nich je příkaz \texttt{ls}, který podporuje přepínač \verb¨--recursive¨. Na~toto musí interpreter příslušně reagovat.
+\texttt{Interpreter} slouží pouze jako mezivrstva, která spojuje uživatelské rozhraní a úložiště konfigurace. Jeho implementace spočívá v tom, že pro každý příkaz je přetížený operátor závorky. Pro příkazy bez parametrů je kód velmi přímočarý, jak je vidět na~ukázce~\ref{interpreter:commit:discard} -- spočívá v zavolání jediné metody rozhraní \texttt{DatastoreAccess}.
 
-\begin{listing}
+\begin{listing}[H]
 \begin{minted}{c++}
 void Interpreter::operator()(const commit_&) const {
     m_datastore.commitChanges();
@@ -773,14 +794,36 @@ void Interpreter::operator()(const discard_&) const {
 \caption{Interpretace příkazů \texttt{commit} a \texttt{discard}}\label{interpreter:commit:discard}
 \end{listing}
 
-Třída \texttt{Interpreter} dále obsahuje různé pomocné metody, které jsou potřeba k interpretaci příkazů. Jednou z nich je metoda \texttt{absolutePathFromCommand}, která převádí strojově čitelnou reprezentaci cest zpět na~řetězce. Datové struktury mého programu reprezentující cesty obsahují sice více informací (např.\ typy uzlů), nicméně komunikace s datovými úložišti probíhá výhradně pomocí textových řetězců, tudíž je třeba struktury převést.
+Složitější příkazy již potřebují měnit své chování v závislosti na~parametrech příkazů. Jeden z nich je příkaz \texttt{ls}, který podporuje přepínač \verb¨--recursive¨. Na~toto musí interpreter příslušně reagovat. Na~ukázce~\ref{interpreter:ls} je vidět, že visitor pro příkaz \texttt{ls} není úplně triviální. Je nutné zjistit, jestli byl příkazu předán zmiňovaný přepínač a podle toho předat parametr funkci \texttt{availableNodes}, která vypisuje poduzly.
+
+\begin{listing}[H]
+\begin{minted}{c++}
+void Interpreter::operator()(const ls_& ls) const
+{
+    std::cout << "Possible nodes:" << std::endl;
+    auto recursion{Recursion::NonRecursive};
+    for (auto it : ls.m_options) {
+        if (it == LsOption::Recursive)
+            recursion = Recursion::Recursive;
+    }
+
+    for (const auto& it
+    : m_parser.availableNodes(ls.m_path, recursion))
+        std::cout << it << std::endl;
+}
+\end{minted}
+\caption{Interpretace příkazů \texttt{commit} a \texttt{discard}}\label{interpreter:ls}
+\end{listing}
+
+
+Třída \texttt{Interpreter} obsahuje různé pomocné metody, které jsou potřeba k interpretaci příkazů. Například metoda \texttt{absolutePathFromCommand} ke konverzi strojově čitelné struktury zpět na textový řetězec. Datové struktury mého programu reprezentující cesty obsahují sice více informací (např.\ typy uzlů), nicméně komunikace s datovými úložišti probíhá výhradně pomocí textových řetězců, tudíž je třeba struktury převést.
 
 
 \section{Přístup k úložišti konfigurace}\label{datastore:access}
-Třída \texttt{Interpreter} používá k přístup k datovému úložišti abstraktní rozhraní \texttt{DatastoreAccess}. Součástí tohoto rozhraní jsou metody určené k získávání a odesílání konfigurace na~vzdálený server. Výhodou volby abstraktního rozhraní je, že třída \texttt{Interpreter} nezávisí na~konkrétním implementace přenosu dat mezi datovým úložištěm a implementovaným programem. To znamená, že se implementovaný program může připojit k jakémukoliv typu datového úložiště (podmínkou ovšem je, že musí používat k validaci modely \textit{YANG}). Kromě protokolu \textit{NETCONF} používá \textit{YANG} k validaci konfigurace i program \textit{sysrepo}\,\cite{sysrepo}.
+Třída \texttt{Interpreter} používá k přístup k datovému úložišti abstraktní rozhraní \texttt{DatastoreAccess}. Součástí tohoto rozhraní jsou metody určené k získávání a odesílání konfigurace na~vzdálený server. Výhodou volby abstraktního rozhraní je, že třída \texttt{Interpreter} nezávisí na~konkrétní implementaci přenosu dat mezi datovým úložištěm a implementovaným programem. To znamená, že se implementovaný program může připojit k jakémukoliv typu datového úložiště (podmínkou ovšem je, že musí používat k validaci modely \textit{YANG}).
 
 \subsection{SysrepoAccess}
-Před implementací komunikace pomocí protokolu \textit{NETCONF} bylo třeba vyladit parser a uživatelské rozhraní. Z tohoto důvodu jsem nejprve implementoval třídu \texttt{SysrepoAccess}, která komunikuje pomocí klientské knihovny \textit{sysrepo}. Použití této knihovny je velmi jednoduché: odpadá jakákoliv nutnost znalosti \textit{NETCONFu}. \textit{Sysrepo} pomocí tohoto protokolu nekomunikuje. Rozhraní \textit{sysrepa} je poměrně přímočaré: pro nastavování hodnot libovolných uzlů slouží metoda \texttt{sysrepo::set\_item}. Naopak, pro získání konfigurace slouží metoda \texttt{sysrepo::get\_items}. Kvůli jednoduchosti tohoto rozhraní jsem při návrhu a testování nemusel řešit, jakým způsobem způsobem funguje protokol \textit{NETCONF}.
+Před implementací komunikace pomocí protokolu \textit{NETCONF} bylo třeba vyladit parser a uživatelské rozhraní. Z tohoto důvodu jsem nejprve implementoval třídu \texttt{SysrepoAccess}, která komunikuje pomocí klientské knihovny programu \textit{sysrepo}\,\cite{sysrepo}, která rovněž používá \textit{YANG} pro validaci dat. Použití této knihovny je velmi jednoduché: odpadá jakákoliv nutnost znalosti \textit{NETCONFu}, protože \textit{sysrepo} pomocí tohoto protokolu nekomunikuje. Důsledkem toho je, že jsem se nemusel protokolem \textit{NETCONF} zabývat a mohl jsem se soustředit na ladění uživatelského rozhraní. Rozhraní \textit{sysrepo} je poměrně přímočaré: pro nastavování hodnot libovolných uzlů slouží metoda \texttt{sysrepo::set\_item}. Naopak, pro získání konfigurace slouží metoda \texttt{sysrepo::get\_items}.
 
 \subsection{NetconfAccess}
 % TODO: I'm fucked. NOT IMPLEMENTED. I'll try to complete the implementation later...
@@ -791,9 +834,9 @@ V první části této kapitoly se zabývám tím, jaké technologie jsem použi
 \section{Testování}
 Testování aplikace na~úrovni kódu probíhalo již od~začátku vývoje díky systému \textit{continuous integration}. \textit{Continuous integration} umožňuje automatické spouštění testů po~nahrání nové verze kódu na~serveru a pokud server zjistí, že nějaký test neproběhl úspěšně, označí novou verzi jako chybnou a je třeba chybu opravit. Při vývoji jsem používal metodu \textit{TDD}.\footnote{test-driven development} Principem této metody je, že před implementací nové funkce se nejdřív vytvoří test, který popisuje očekávané chování nové funkce. S téměř\footnote{některé funkce lze jen velmi těřko testovat -- např.\ uživatelské rozhraní} každou novou funkcí byl tedy přidán i příslušný test.
 
-K testování jsem nejprve používal knihovnu \textit{Catch}\,\cite{catch2}. Výhoda knihovny \textit{Catch} je, že společné části jednotlivých testů lze definovat pouze jednou. Rozdílné části se definují pomocí maker \texttt{SECTION}. Na~ukázce~\ref{catch:example} je vidět část testu s makry \texttt{SECTION}. V tomto případě testuji pomyslnou funkci \texttt{isEven}, která zjišťuje, jestli je číslo sudé. V tomto testu se nachází dvě větve. To zajíšťuje, že se test vykoná dvakrát, jednou průběhem jednou větví a podruhé větví druhou. Vytvoření proměnné \texttt{a} je společné pro obě větve.
+K testování jsem nejprve používal knihovnu \textit{Catch}\,\cite{catch}. Výhoda knihovny \textit{Catch} je, že společné části jednotlivých testů lze definovat pouze jednou. Rozdílné části se definují pomocí maker \texttt{SECTION}. Na~ukázce~\ref{catch:example} je vidět část testu s makry \texttt{SECTION}. V tomto případě testuji pomyslnou funkci \texttt{isEven}, která zjišťuje, jestli je číslo sudé. V tomto testu se nachází dvě větve. To zajíšťuje, že se test vykoná dvakrát, jednou průchodem jednou větví a podruhé větví druhou. Vytvoření proměnné \texttt{a} je společné pro obě větve.
 
-V pozdější fázi vývoje jsem přešel na~knihovnu \textit{doctest}\,\cite{doctest}, který téměř stejné rozhraní jako knihovna \textit{Catch2}. Výhodou knihovny \textit{doctest} je, že s jejím použitím se testy kompilují mnohem rychleji, než při použití knihovny \textit{Catch2}.
+V pozdější fázi vývoje jsem přešel na~knihovnu \textit{doctest}\,\cite{doctest}, který má téměř stejné rozhraní jako knihovna \textit{Catch}. Výhodou knihovny \textit{doctest} je, že s jejím použitím se testy kompilují mnohem rychleji, než při použití knihovny \textit{Catch}.
 
 \begin{listing}
 \begin{minted}{c++}
@@ -812,7 +855,7 @@ TEST_CASE("isEven")
     REQUIRE(isEven(a));
 }
 \end{minted}
-\caption{Ukázka testování pomocí knihovny \textit{Catch2}}\label{catch:example}
+\caption{Ukázka testování pomocí knihovny \textit{Catch}}\label{catch:example}
 \end{listing}
 
 \subsection{Testování parseru}
