@@ -14,12 +14,19 @@ build/bakalarka.pdf: bakalarka.tex cvut-logo-bw.pdf FITthesis.cls mybibliography
 	@/usr/bin/vendor_perl/biber -output-directory=build bakalarka.bcf $(redir)
 	@echo " done."
 	@echo -n "xelatex -shell-escape -output-directory=build bakalarka.tex..."
-	@if xelatex -shell-escape -output-directory=build bakalarka.tex | grep "rerun LaTeX" $(redir); then \
+ifeq ($(DEBUG),y)
+	@xelatex -shell-escape -output-directory=build bakalarka.tex $(redir)
+	@echo " done."
+	@xelatex -shell-escape -output-directory=build bakalarka.tex $(redir)
+	@echo " done."
+else
+	@if xelatex -shell-escape -output-directory=build bakalarka.tex | grep "rerun LaTeX" > /dev/null; then \
 	    echo " done."; \
 	    echo -n "xelatex -shell-escape -output-directory=build bakalarka.tex..."; \
 	    xelatex -shell-escape -output-directory=build bakalarka.tex $(redir); \
-	fi
+	    fi
 	@echo " done."
+endif
 
 
 build/prezentace.pdf: prezentace.tex logo-cvut.pdf | build
