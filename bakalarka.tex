@@ -143,14 +143,17 @@ letter = "a" | "b" | "c" | "d" | "e" | "f" | "g"
 Syntaxe \verb¨<nazev> =¨ definuje pravidla. Literály jsou uváděny pomocí znaků uvnitř uvozovek. Znak svislá čára \texttt{|} značí alternativu, což znamená, že neterminál lze nahradit za jakýkoliv symbol oddělený touto čarou. Neterminál \texttt{letter} tedy umožňuje nahrazení za jakýkoliv znak abecedy. Tento neterminál je použit v pravidle \texttt{start}. Čárka \texttt{,} slouží k zřetězení (\uv{slepení}) dvou jiných řetězců a složené závorky (\texttt{\{} a \texttt{\}}) znamenají, že cokoli uvnitř lze opakovat v libovolném počtu (i nula krát). Pravidla se oddělují středníkem \texttt{;}. Gramatika z ukázky odpovídá jazyku, jenž obsahuje slova, která začínají písmenem \uv{a} a poté následuje libovolný počet písmen abecedy.
 
 
-\chapter{Existující relevantní práce}
-V tento moment existuje několik programů implementující klientskou část \textit{NETCONFu}. Jeden z nich je \textit{Netopeer2-cli}\,\cite{netopeer} napsaná v jazyce C. Pro komunikaci přes \textit{NETCONF} využívá knihovnu \textit{libnetconf}\,\cite{libnetconf}. Výhodou je, že podporuje takřka veškeré konstrukty \textit{NETCONFu} včetně připojení přes TLS a SSH\@. Dalším programem je \textit{netconf-console}\,\cite{netconf-console}. Ta je napsána v programovacím jazyku Python s pomocí knihovny \textit{ncclient}\,\cite{ncclient}.
-
-Nevýhoda obou těchto aplikací je, že přestože jsou obě schopny konfigurace zařízení, jejich rozhraní není přívětivé, jelikož pohlíží na věc z hlediska \textit{NETCONFu} a ne z hlediska toho, co chce uživatel konfigurovat. To v praxi znamená, že uživatel musí znát podrobně různé operace jako například \texttt{<get-config>} apod.
-
 
 \chapter{Návrh}
-V této kapitole se zabývám tím, jak program vypadá, jeho syntaxí a konstrukty, které se v mém programu vyskytují. Píšu zde, jakým způsobem se uživatel orientuje ve stromech modelů \textit{YANG} a nakonec popisuju veškeré příkazy, které jsou v programu obsaženy.
+V této kapitole nejprve popisuji existující programy, které implementují klientskou část protokolu \textit{NETCONF} a zdůvodňuji, proč je třeba vytvořit aplikaci novou. Dále se zabývám tím, jak program vypadá, jeho syntaxí a konstrukty, které se v mém programu vyskytují. Píšu zde, jakým způsobem se uživatel orientuje ve stromech modelů \textit{YANG} a nakonec popisuji veškeré příkazy, které jsou v programu obsaženy.
+
+\section{Existující relevantní práce}\label{existing}
+V této kapitole popisuji požadavky aplikace a zdůvodňuji nutnost vytvoření nového nástroje pro vzdálenou konfiguraci.
+
+V tento moment existuje několik programů implementující klientskou část \textit{NETCONFu}. Jeden z nich je \textit{Netopeer2-cli}\,\cite{netopeer} napsaná v jazyce C. Pro komunikaci přes \textit{NETCONF} využívá knihovnu \textit{libnetconf}\,\cite{libnetconf}. Výhodou je, že podporuje takřka veškeré konstrukty \textit{NETCONFu} včetně připojení přes TLS a SSH\@. Dalším programem je \textit{netconf-console}\,\cite{netconf-console}. Ta je napsána v programovacím jazyku Python s pomocí knihovny \textit{ncclient}\,\cite{ncclient}.
+
+Nevýhoda obou těchto aplikací je, že přestože jsou obě schopny konfigurace zařízení, jejich rozhraní není přívětivé, jelikož pohlíží na věc z hlediska protokolu \textit{NETCONF} a ne z hlediska toho, co chce uživatel konfigurovat. To v praxi znamená, že uživatel musí znát podrobně různé operace jako například \texttt{<get-config>} apod. 
+
 
 \section{Koncepce programu}
 Program, který implementuji, je koncipován jako interaktivní konzolová aplikace. Silnou stránkou konzolových aplikací je možnost použití ve skriptech\footnote{skripty jsou jednoduché programy, používané k definování nějakých scénářů, například \uv{nastav nějaké údaje na nějakém zařízení}}. Uživatel může aplikaci použít interaktivně, napojením terminálu na vstup programu a manuálním zadáváním příkazů, ale také dávkově, uložením příkazů do souboru a vložením tohotu souboru na vstup programu.
@@ -310,8 +313,6 @@ Nejznámější knihovna využívaná k tomuto účelu je \textit{GNU Readline}\
 
 Méně těžkotonážní variantou je knihovna \textit{linenoise}. Ta je oproti \textit{Readline} z hlediska velikosti zdrojového kódu velmi malá -- obsahuje zhruba tisíc řádků. Její odnož \textit{cpp-linenoise} je napsaná přímo v \Cpp{}, tudíž odpadají různé nevýhody použití jazyka C, a je header-only. Z hlediska funkčních požadavků \textit{cpp-linenoise} bohužel zaostává: nepodporuje mnoho klávesových zkratek (například kombinace klávesy Ctrl a směrových šipek) a automatické doplňování je pouze velmi jednoduché (neinkrementální). Všechny tyto nedostatky řeší knihovna \textit{replxx}. Ta oproti \textit{linenoise} není header-only, nicméně velmi dobře napodobuje \textit{Readline} z hlediska podpory klávesových zkratek a automatického dokončování. Ve svém programu jsem tedy zvolil knihovnu \textit{replxx}.
 
-% TODO: ukázat docopt.cpp (Ale někde jinde)
-
 \section{Zpracování vstupu pomocí \textit{Boost Spirit X3}}\label{spirit:intro}
 Ke zpracování gramatik příkazů je potřeba parser.\footnote{syntaktický analyzátor; v mém programu část, která převádí textový vstup na strojově čitelný výstup} Implementaci parseru lze provést manuálně, to ovšem může být u složitých gramatik velmi nepraktické, a proto je vhodné použít nějakou knihovnu, která dokáže parser vygenerovat. Na základě konzultace s kolegou jsem použil knihovnu \textit{Boost Spirit X3}.
 
@@ -470,6 +471,8 @@ struct cd_ : x3::position_tagged {
 \end{minted}
 \caption{Struktura \texttt{cd\_}}\label{struct:cd}
 \end{listing}
+
+Pokud parsování neproběhlo úspěšně, metoda \texttt{parseCommand} vyvolává výjimku. Součástí parsování jsou i chybové výpisy, které se vypisují na proud\footnote{například standardní výstup nebo standardní chybový výstup}, který je metodě předáván, jako druhý parametr.
 
 \subsection{Gramatiky příkazů}
 Vytvořit gramatiky samotných příkazů podle jejich syntaxe je poměrně jednoduché. Nejsložitější gramatiku má příkaz \texttt{ls}, kterou lze vidět v ukázce~\ref{grammar:ls}. Nejprve gramatika parsuje řetězec \verb¨"ls"¨ (uložený v proměnné \verb¨ls:::name¨). Nyní je potřeba parsenout volitelný přepínač \verb¨ls_options¨. Samotné pravidlo pro tento přepínač je uvedeno v ukázce~\ref{grammar:ls:options}. Toto pravidlo je implementováno pomocí \uv{symbol table}, což je způsob, jak definovat, které řetězce se mají parsenout a jaké atributy budou mít.
@@ -673,37 +676,133 @@ Uživatel nemusí vždy vědět, jaké klíče jsou potřeba k jednoznačné def
 Tyto situace lze rozlišit podle toho, jestli je doplnění jednoznačné (tj.\ že po filtrování zůstane jen jedne návrh). Vzhledem k tomu, že filtrování návrhů probíhá mimo parser, metoda \texttt{completeCommand} neví, co doplnit, pokud se ukáže, že návrh zůstal jen jeden. Kvůli tomu jsem založil proměnnou \texttt{m\_completionSuffix}. Do této proměnné parser zapíše, co se má k návrhu připsat za předpokladu, že bude jen jeden.
 
 
-\section{Interpreter}\label{interpreter}
-Další součástí programu je interpreter. Vzhledem k tomu, že je \textit{Spirit} schopen získat příkazy od uživatele v podobně velmi dobře čitelné strojem, není složité podle nich implementovat správnou funkcionalitu. Práce interpreteru je v zásadě jen volání správných procedur třídy \texttt{DatastoreAccess}.
+\section{Interpretace příkazů}\label{interpreter}
+Poté, co data opustí parser ve formě strojově čitelných struktur, je třeba příkazy vykonat (interpretovat). K tomu slouží třída \texttt{Interpreter}, jejíž design odpovídá návrhovému vzoru \textit{visitor}. Principem tohoto návrhového vzoru je oddělit data a funkcionalitu, která je nad těmito daty prováděna. V tomto případě jsou tato data struktury, které získávám pomocí knihovny \textit{Spirit}. Třída \texttt{boost::variant}, jenž je datovým typem výsledné struktury knihovny \textit{Spirit}, podporuje tento návrhový vzor nativně pomocí funkce \texttt{boost::apply\_visitor}.
+
+V \Cpp{} se \textit{visitor} implementuje pomocí přetížení operátoru závorky (\texttt{()}). Použití třídy \texttt{Interpreter} je vidět v ukázce~\ref{interpreter:invocation}. Metoda \texttt{parseCommand} nejprve vytvoří výslednou strukturu. Funkce \texttt{boost::apply\_visitor} přijímá dva parametry: instanci třídy, která podléhá vzoru \textit{visitor} (zde je vždy vytvořena nová instance), a proměnnou typu \texttt{boost::variant}, s kterou bude \textit{visitor} použit. Tato funkce zavolá na \textit{visitor} operátor závorky s argumentem, který jsme předali jako druhý. Celý tento kód je obalen blokem \texttt{try}, který případě odchytí výjimku vyvolanou metodou \texttt{parseCommand}.
+
+\begin{listing}
+\begin{minted}{c++}
+try {
+    command_ cmd = parser.parseCommand(line, std::cout);
+    boost::apply_visitor(Interpreter(parser, datastore), cmd);
+} catch (InvalidCommandException& ex) {
+    // handle error
+}
+\end{minted}
+\caption{Volání interpreteru}\label{interpreter:invocation}
+\end{listing}
+
+\texttt{Interpreter} slouží pouze jako mezivrstva, která spojuje uživatelské rozhraní a úložiště konfigurace. Jeho implementace spočívá v tom, že pro každý příkaz je přetížený operátor závorky. Pro příkazy bez parametrů je kód velmi přímočarý, jak je vidět na ukázce~\ref{interpreter:commit:discard} -- spočívá v zavolání jediné metody rozhraní \texttt{DatastoreAccess}. Složitější příkazy již potřebují měnit své chování v závislosti na parametrech příkazů. Jeden z nich je příkaz \texttt{ls}, který podporuje přepínač \verb¨--recursive¨. Na toto musí interpreter příslušně reagovat.
+
+\begin{listing}
+\begin{minted}{c++}
+void Interpreter::operator()(const commit_&) const {
+    m_datastore.commitChanges();
+}
+void Interpreter::operator()(const discard_&) const {
+    m_datastore.discardChanges();
+}
+\end{minted}
+\caption{Interpretace příkazů \texttt{commit} a \texttt{discard}}\label{interpreter:commit:discard}
+\end{listing}
+
+Třída \texttt{Interpreter} dále obsahuje různé pomocné metody, které jsou potřeba k interpretaci příkazů. Jednou z nich je metoda \texttt{absolutePathFromCommand}, která převádí strojově čitelnou reprezentaci cest zpět na řetězce. Datové struktury mého programu reprezentující cesty obsahují sice více informací (např.\ typy uzlů), nicméně komunikace s datovými úložišti probíhá výhradně pomocí textových řetězců, tudíž je třeba struktury převést.
+
 
 \section{Přístup k úložišti konfigurace}\label{datastore:access}
-K vykonávání příkazů potřebuje interpreter přístup k datovému úložišti. Toto je implementováno pomocí abstraktního rozhraní \texttt{DatastoreAccess}. Tato součást obsahuje procedury k nastavování leafů na různé hodnoty a jiné metody na změnu konfigurace. V mé aplikaci budou implementována tato konkrétní rozhraní:
+Třída \texttt{Interpreter} používá pro přístup k datovému úložišti rozhraní \texttt{DatastoreAccess}. Součástí tohoto rozhraní jsou metody určené k získávání a odesílání konfigurace na vzdálený server. Výhodou volby abstraktního rozhraní je, že třída \texttt{Interpreter} nezávisí na konkrétním implementace přenosu dat mezi datovým úložištěm a implementovaným programem. To znamená, že se implementovaný program může připojit k jakémukoliv typu datového úložiště (podmínkou ovšem je, že musí používat k validaci modely \textit{YANG}). Kromě protokolu \textit{NETCONF} používá \textit{YANG} k validaci konfigurace i program \textit{sysrepo}\,\cite{sysrepo}.
+
+\subsection{SysrepoAccess}
+Před implementací komunikace pomocí protokolu \textit{NETCONF} bylo třeba vyladit parser a uživatelské rozhraní. Z tohoto důvodu jsem nejprve implementoval třídu \texttt{SysrepoAccess}, která komunikuje pomocí klientské knihovny \textit{sysrepo}. Použití této knihovny je velmi jednoduché: odpadá jakákoliv nutnost znalosti \textit{NETCONFu}. \textit{Sysrepo} pomocí tohoto protokolu nekomunikuje. Rozhraní \textit{sysrepa} je poměrně přímočaré: pro nastavování hodnot libovolných uzlů slouží metoda \texttt{sysrepo::set\_item}. Naopak, pro získání konfigurace slouží metoda \texttt{sysrepo::get\_items}. Kvůli jednoduchosti tohoto rozhraní jsem při návrhu a testování nemusel řešit, jakým způsobem způsobem funguje protokol \textit{NETCONF}.
 
 \subsection{NetconfAccess}
-% TODO: ukázat libnetconf2
-
-\subsubsection{SysrepoAccess}
-% TODO: ukázat sysrepo klientskou knihovnu
-
-\section{Testování}
-% TODO: ukázat doctest
-% TODO: ukázat trompeloeil
-% TODO: zmínit Catch
-
-\subsection{Knihovna na logování?}
-% TODO: spdlog, použito jen v netconf cpp wrapperu... od Honzy
+% TODO: I'm fucked. NOT IMPLEMENTED. I'll try to complete the implementation later...
 
 
 \chapter{Vyhodnocení}
+V první části této kapitoly se zabývám tím, jaké technologie jsem použil pro otestování aplikace. V druhé části porovnávám svoji aplikaci s existujícími řešeními, popisuji její výhody a kontroluji splnění cílů.
 \section{Testování}
-% TODO: testování přes doctest, především unit testy, ale i nějaký jiný (sysrepo.cpp)\@. hlášení bugů přes issue tracker, po opravení napsán test
-\section{Porovnání s konkurencí}
-% TODO: popsat, že ačkoliv moje aplikace nepodporuje 100 \% YANGu/NETCONFu, na základní použití stačí (hlavní cíl byl, upravovat konfiguraci bez znalosti YANG modelů a NETCONFu)
-\section{Výsledky z nasazení}
-% TODO: no, prej to Honza používá xD
+Testování aplikace na úrovni kódu probíhalo již od začátku vývoje díky systému \textit{continuous integration}. \textit{Continuous integration} umožňuje automatické spouštění testů po nahrání nové verze kódu na serveru a pokud server zjistí, že nějaký test neproběhl úspěšně, označí novou verzi jako chybnou a je třeba chybu opravit. Při vývoji jsem používal metodu \textit{TDD}.\footnote{test-driven development} Principem této metody je, že před implementací nové funkce se nejdřív vytvoří test, který popisuje očekávané chování nové funkce. S téměř\footnote{některé funkce lze jen velmi těřko testovat -- např.\ uživatelské rozhraní} každou novou funkcí byl tedy přidán i příslušný test.
+
+K testování jsem nejprve používal knihovnu \textit{Catch}\,\cite{catch2}. Výhoda knihovny \textit{Catch} je, že společné části jednotlivých testů lze definovat pouze jednou. Rozdílné části se definují pomocí maker \texttt{SECTION}. Na ukázce~\ref{catch:example} je vidět část testu s makry \texttt{SECTION}. V tomto případě testuji pomyslnou funkci \texttt{isEven}, která zjišťuje, jestli je číslo sudé. V tomto testu se nachází dvě větve. To zajíšťuje, že se test vykoná dvakrát, jednou průběhem jednou větví a podruhé větví druhou. Vytvoření proměnné \texttt{a} je společné pro obě větve.
+
+V pozdější fázi vývoje jsem přešel na knihovnu \textit{doctest}\,\cite{doctest}, který téměř stejné rozhraní jako knihovna \textit{Catch2}. Výhodou knihovny \textit{doctest} je, že s jejím použitím se testy kompilují mnohem rychleji, než při použití knihovny \textit{Catch2}.
+
+\begin{listing}
+\begin{minted}{c++}
+TEST_CASE("isEven")
+{
+    int a;
+    SECTION("větev první")
+    {
+        a = 2;
+    }
+
+    SECTION("větev druhá")
+    {
+        a = 10;
+    }
+    REQUIRE(isEven(a));
+}
+\end{minted}
+\caption{Ukázka testování pomocí knihovny \texttt{Catch2}}\label{catch:example}
+\end{listing}
+
+\subsection{Testování parseru}
+Nejdůležitější součást -- parser -- je testována nejvíce. Testů je mnoho a jsou rozděleny do několika souborů. Příkladem je například soubor \texttt{cd.cpp}, který specificky testuje zpracovávání příkazu \texttt{cd} nebo soubor \texttt{leaf\_editing.cpp}, který testuje parsování příkazu \texttt{set}. Pro otestování parseru byla pro zjednodušení implementována třída \texttt{StaticSchema}, která napodobuje třídu \texttt{YangSchema}.
+
+Testuje se jak pomocí \uv{pozitivních} testů, tak \uv{negativních} testů. V pozitivních testech je metodě \texttt{parseCommand} předán textový vstup s validním příkazem. Metoda nesmí při testu vyvolat výjimku a výstupní struktura parseru musí odpovídat očekávané struktuře definované v každém testu. V negativních testech je naopak metodě předán neplatný příkaz. V tomto případě musí metoda vyvolat výjimku.
+
+Kromě samotného parsování se rovněž testuje schopnost parseru generovat návrhy na doplňování. Testování doplňování je velmi důležité, neboť doplňování je klíčovou vlastností implementovaného programu. Většina funkcí, o kterých jsem psal v kapitole~\ref{completion}, je tudíž řádně otestována.
+
+\subsection{Unit testy třídy \texttt{YangSchema}}
+Aby byla zajištěna správná funkčnost třídy \texttt{YangSchema}, je tato třída testována pomocí \textit{unit testů}. Unit testy jsou jednoduchou metodou jak otestovat jednu elementární část programu. Každá metoda v této třídě je testována na příkladovém modelu \textit{YANG}. Opět se zde vyskytují pozitivní i negativní testy.
+
+
+\section{Porovnání s existujícími řešeními}
+Nevýhodou programů, které implementují komunikaci pomocí protokolu \textit{NETCONF}, o kterých jsem psal v kapitole~\ref{existing} je, že pohlížejí na komunikaci tak, jak funguje komunikace přes \textit{NETCONF}. Důsledkem toho je, že uživatel musí protokol podrobně znát. Program, který jsem implementoval já, se od \textit{NETCONF} abstrahuje, a důkladná znalost není potřeba.
+
+Na ukázku porovnám svůj program s programem \textit{Netopeer2-cli}. Jako příkladovou úlohu zvolím nastavení hodnoty uzlu \texttt{example:leafInt} na \texttt{5}. V ukázce~\ref{netopeer:example} je vidět jak by mohlo vypadat provedení této akce v programu \textit{Netopeer2-cli}. Již na první pohled je vidět, že se zde vyskytuje příkaz \texttt{edit-config}, což implikuje to, že uživatel musí vědět, kterou \textit{NETCONF} zprávu použít.
+
+Ukázka~\ref{set:example} ukazuje, jak něčeho podobného docílit v mnou implementovaném programu, který nevyžaduje znalost protokolu \textit{NETCONF}. Výhodou mého programu je také to, že požadovaná hodnota je přímo součástí příkazu. Program \textit{Netopeer2-cli} po zadání příkazu \texttt{edit-config} otevře editor, kde musí uživatel manuálně zadat požadovanou konfiguraci v přesném formátu, validním pro \texttt{NETCONF}. V neposlední řadě, můj program také nabízí automatické doplňování názvů uzlů (lze také vidět na ukázce~\ref{set:example}), což uživatel mohl použít v případě, že by neznal přesný název uzlu.
+\begin{listing}
+\begin{verbatim}
+// ... připojení k serveru ...
+> edit-config --target --config
+OK
+> commit
+OK
+>
+\end{verbatim}
+\caption{Nastavení hodnoty v \textit{Netopeer2-cli}\label{netopeer:example}}
+\end{listing}
+
+\begin{listing}
+\begin{verbatim}
+// ... připojení k serveru ...
+> set
+example:leafInt example:leafString
+> set example:leafInt 5
+> commit
+>
+\end{verbatim}
+\caption{Nastavení hodnoty v implementovaném programu}\label{set:example}
+\end{listing}
+
 
 \begin{conclusion}
-% TODO: Něco dopsat sem, asi v závislosti na zbytku
+Cílem této práce bylo vytvořit konzolovou aplikaci, pomocí které bude možné vzdáleně měnit konfiguraci síťových zařízení založenou na modelech \textit{YANG} přes protokol \textit{NETCONF}, bez důkladné znalosti obou technologií. Existující řešení, které implementují klientskou část protokolu \textit{NETCONF} ztrácí z hlediska intuitivity a jejich použití je komplikované.
+
+V teoretické části práce jsem popsal nezbytné informace o technologií a konstruktech použitých ve zbytku práce. Kromě protokolu \textit{NETCONF} a modelovacího jazyka \textit{YANG} to byl také úvod do teorie formálních jazyků a gramatik, kterou využívám jako základ pro implementaci programu. Zmínil jsem se zde také o EBNF -- způsobu zápisu formálních gramatik.
+
+V návrhové části jsem navrhl syntaxi vstupních dat a také způsob, jakým se uživatel orientuje ve stromech tvořených modely \textit{YANG}. Dále jsem popsal sadu příkazů, jenž slouží k prozkoumávání stromů a také editaci dat na vzdáleném serveru.
+
+V implementační části popisuji především práci s knihovnou \textit{Boost Spirit X3} a jakými gramatikami jsem implementoval jednotlivé příkazy navržené v návrhovéí části. Píši zde také, jakým způsobem proudí data programem a které součásti ho zpracovávají. Kromě toho zde vysvětluji, co všechno aplikace podporuje z hlediska automatického doplňování a také jakými prostředky tuto funkcionalitu implementuji.
+
+V testovací části se zaměřuji na popis procesu testování. Vysvětluji, jakým způsobem testuji nejdůležitější součásti aplikace. Následně použiji program \textit{Netopeer2-cli} pro demonstraci silných vlastností implementovaného programu.
+
+Implementovaný program v aktuálním stavu nepodporuje veškeré konstrukty jazyka \textit{YANG} a protokolu \textit{NETCONF}, čímž zaostává za programy, které implementují tyto dvě technologie mnohem důkladněji. Nicméně, hlavním přínosem této práce je především vytvoření uživatelského rozhraní a syntaxe, jenž se abstrahuje od protokolu \textit{NETCONF}. Do budoucna je možné aplikaci rozvíjet, především o další funkce jazyka \textit{YANG} a protokolu \textit{NETCONF}.
 \end{conclusion}
 
 \printbibliography{}
