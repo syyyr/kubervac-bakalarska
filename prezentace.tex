@@ -64,56 +64,16 @@
     \note{Nezapomenout pozdravit}
 \end{frame}
 
-\begin{frame}
-    \tableofcontents
-\end{frame}
-
 \section{Motivace}
-\begin{frame}
-\tableofcontents[currentsection]
-\end{frame}
-\begin{frame}{Existující konfigurační nástroje}
-\begin{itemize}
-\pause{}
-\item\only<2>{grafické nástroje} \pause{}
-\only<3->{\sout{grafické nástroje} -- nelze použít na mnoho zařízení najednou} \pause{}
-\item Cisco IOS \pause{}
-\item využití otevřených standardů
-\end{itemize}
-\end{frame}
-
 \setbeamercovered{%
   again covered={\opaqueness<1->{15}}}
-  \begin{frame}<1,2>[label=pozadavky]{Požadované vlastnosti aplikace}
+  \begin{frame}<1,2,3>[label=pozadavky]{Požadované vlastnosti aplikace}
       \begin{itemize}[<+>]
           \item konzole
-          \item využívá otevřené standardy
+          \item komunikace s CESNET zařízeními
           \item je intuitivní
       \end{itemize}
   \end{frame}
-
-\begin{frame}{Konfigurační protokoly}
-    \begin{itemize}
-        \pause{}
-        \item[] SNMP
-            \begin{itemize}
-                \item 1990
-                \item nepodporuje transakce
-            \end{itemize}
-            \pause{}
-        \item[] NETCONF
-            \begin{itemize}
-                \item 2011
-                \item server-klient
-                \item vytvořen společně s modelovacím jazykem YANG
-                \pause{}
-                \item klientskou část implementuje Netopeer2-cli
-            \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\againframe<2,3>{pozadavky}
-
 
 \begin{frame}[fragile]{Intuitivita}
     \begin{columns}
@@ -171,44 +131,59 @@
     \end{columns}
 \end{frame}
 
+\begin{frame}{Existující konfigurační nástroje}
+\begin{itemize}
+\pause{}
+\item Netconf2-cli
+\item sysrepocfg
+\end{itemize}
+\end{frame}
+
 \section{Použitá řešení}
-\begin{frame}
-\tableofcontents[currentsection]
+
+\begin{frame}[plain]
+\begin{center}
+\color{CVUT}
+\Large Parser
+\end{center}
+\end{frame}
+
+\begin{frame}{Parser}
+\begin{itemize}
+    \item[] Nejdůležitější část aplikace
+    \item[] Umožňuje dynamickou kontrolu vstupních dat pomocí YANG \pause{}
+        \begin{itemize}
+            \item libyang
+        \end{itemize}
+\end{itemize}
 \end{frame}
 
 \begin{frame}[plain]
 \begin{center}
 \color{CVUT}
-\Large NETCONF
+\Large Komunikace s datovými úložišti
 \end{center}
 \end{frame}
 
 
-\begin{frame}{NETCONF}
-    Implementace celého protokolu může být náročná. Řešení: použití knihovny.
+\begin{frame}{Komunikace s datovými úložišti}
+    \pause{}
+    Pro testování -- komunikace se sysrepo démonem
     \pause{}
     \vfill
-    libnetconf2 -- knihovna implementující NETCONF
-    \begin{itemize}
-        \item napsaná v jazyce C
-        \item CESNET
-    \end{itemize}
+    Proof of concept -- NETCONF (libnetconf2)
+
 \end{frame}
 
 \begin{frame}[plain]
 \begin{center}
 \color{CVUT}
-\Large Zpracovávání vstupu
+\Large Prostředky intuitivity
 \end{center}
 \end{frame}
 
-\begin{frame}{Zpracovávání vstupu}
+\begin{frame}{Prostředky intuitivity}
     \begin{itemize}
-        \item[] Použití prostředků jazyka \Cpp{}
-            \pause{}
-            \begin{itemize}
-                \item jednoduché, nicméně nabízí to samé, co \textit{ed}
-            \end{itemize}
         \pause{}
         \item[] Použití knihovny na editaci vstupní řádky
             \pause{}
@@ -229,9 +204,6 @@
 \end{frame}
 
 \section{Závěr}
-\begin{frame}
-\tableofcontents[currentsection]
-\end{frame}
 
 \begin{frame}<1,2,3>[fragile,label=porovnani]{Porovnání s \textit{Netopeer2-cli}}
     Změna hodnoty example:leafInt na 5.
@@ -307,23 +279,15 @@
 
 \againframe<4->{porovnani}
 
+\section{Závěr}
 \begin{frame}{Shrnutí}
-\begin{itemize}
-\item[] Splnění požadavků:
     \begin{itemize}
         \pause{}
         \item konzolová aplikace\pause{} -- splněno
         \pause{}
-        \item používá otevřený standard\pause{} -- splněno
+        \item komunikuje s CESNET zařízeními\pause{} -- splněno
         \pause{}
         \item nabízí prvky intuitivity\pause{} -- splněno
     \end{itemize}
-    \pause{}
-\item[] Možná rozšiřitelnost i na jiné protokoly, které používají YANG\@.
-\end{itemize}
-\pause{}
-\vfill
-Děkuji za pozornost.
-
 \end{frame}
 \end{document}
