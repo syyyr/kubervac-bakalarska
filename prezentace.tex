@@ -45,14 +45,13 @@
 % další balíčky
 \usepackage[outputdir=build]{minted}
 \usepackage{hyperref}
-\usepackage{tikz}
 
 % Údaje o prezentaci
 \title[Nástroj pro konfiguraci a monitorování]{Nástroj pro konfiguraci a monitorování}
 \subtitle{Bakalářská práce}
 \institute[FIT ČVUT v Praze]{Fakulta informačních technologií \\ České vysoké učení technické v Praze}
 \author[V. Kubernát]{Václav Kubernát \\ Vedoucí práce: Ing. Tomáš Čejka, Ph.D.}
-\date{3. 5. 2019}
+\date{20. 6. 2019}
 \titlegraphic{\includegraphics[width=.1\textwidth]{logo-cvut}}
 
 
@@ -60,150 +59,132 @@
 
 
 \begin{frame}
-    \titlepage{} %generuje se automaticky z section, subsection, subsubsection
-    \note{Nezapomenout pozdravit}
+    \titlepage{}
 \end{frame}
 
-\section{Motivace}
-\setbeamercovered{%
-  again covered={\opaqueness<1->{15}}}
-  \begin{frame}<1,2,3>[label=pozadavky]{Požadované vlastnosti aplikace}
-      \begin{itemize}[<+>]
-          \item konzole
-          \item komunikace s CESNET zařízeními
-          \item je intuitivní
-      \end{itemize}
-  \end{frame}
+\begin{frame}{Motivace}
+    \begin{itemize}[<+->]
+        \item CESNET
+        \item Czechlight
+    \end{itemize}
+\end{frame}
 
-\begin{frame}[fragile]{Intuitivita}
-    \begin{columns}
-        \pause{}
-        \begin{column}{.47\textwidth}
-\verb|$ ed|
-
-\pause{}
-\verb||
-
-\verb|?|
-
-\pause{}
-\verb|help|
-
-\pause{}
-\verb|?|
-
-\pause{}
-\verb|h|
-
-\pause{}
-\verb|Invalid address|
-
-\pause{}
-\verb|quit|
-
-\verb|?|
-
-\pause{}
-\verb|exit|
-
-\verb|?|
-        \pause{}
-        \end{column}
-        \begin{column}{.47\textwidth}
-\verb|~/example$|\pause{} \verb|ls|
-
-\pause{}
-\verb|file1  file2  file3|
-
-\verb|~/example$|\pause{} \verb|echo Hello > file1|
-
-\verb|~/example$|\pause{} \verb|cat fi| \pause{}
-
-\verb|~/example$| \verb|cat file|
-\pause{}
-\verb|file1  file2  file3|
-
-\verb|~/example$ cat file|\pause{}\verb|1|
-
-\pause{}
-\verb|Hello|
-        \end{column}
-    \end{columns}
+\begin{frame}{Konfigurace}
+    \begin{itemize}
+        \item Provozovaná zařízení je nutné konfigurovat\pause{}
+        \item Standardizace konfigurace\pause{}
+        \item NETCONF\pause{}
+            \begin{itemize}
+                \item klient-server
+                \item komunikace pomocí XML
+                \item modelovaní konfigurace pomocí schémat YANG
+            \end{itemize}
+    \end{itemize}
 \end{frame}
 
 \begin{frame}{Existující konfigurační nástroje}
+Serverová část:
 \begin{itemize}
-\pause{}
+    \item Netopeer2-server a sysrepo
+\end{itemize}\pause{}
+Klientská část:
+\begin{itemize}
 \item Netconf2-cli
 \item sysrepocfg
 \end{itemize}
 \end{frame}
 
-\section{Použitá řešení}
-
-\begin{frame}[plain]
-\begin{center}
-\color{CVUT}
-\Large Parser
-\end{center}
-\end{frame}
-
-\begin{frame}{Parser}
-\begin{itemize}
-    \item[] Nejdůležitější část aplikace
-    \item[] Umožňuje dynamickou kontrolu vstupních dat pomocí YANG \pause{}
-        \begin{itemize}
-            \item libyang
-        \end{itemize}
-\end{itemize}
-\end{frame}
-
-\begin{frame}[plain]
-\begin{center}
-\color{CVUT}
-\Large Komunikace s datovými úložišti
-\end{center}
-\end{frame}
-
-
-\begin{frame}{Komunikace s datovými úložišti}
-    \pause{}
-    Pro testování -- komunikace se sysrepo démonem
-    \pause{}
-    \vfill
-    Proof of concept -- NETCONF (libnetconf2)
-
-\end{frame}
-
-\begin{frame}[plain]
-\begin{center}
-\color{CVUT}
-\Large Prostředky intuitivity
-\end{center}
-\end{frame}
-
-\begin{frame}{Prostředky intuitivity}
-    \begin{itemize}
+\begin{frame}[fragile]{Intuitivita}
+    \begin{columns}
         \pause{}
-        \item[] Použití knihovny na editaci vstupní řádky
+        \begin{column}{.47\textwidth}
+            \verb|$ ed|
+
             \pause{}
-            \begin{itemize}
-                \item umožňuje doplňování příkazů
-                \pause{}
-                \item podporuje klávesové zkratky
-                \pause{}
-                \item použita knihovna \textit{replxx}
-            \end{itemize}
-    \end{itemize}
+            \verb||
+
+            \verb|?|
+
+            \pause{}
+            \verb|help|
+
+            \pause{}
+            \verb|?|
+
+            \pause{}
+            \verb|h|
+
+            \pause{}
+            \verb|Invalid address|
+
+            \pause{}
+            \verb|quit|
+
+            \verb|?|
+
+            \pause{}
+            \verb|exit|
+
+            \verb|?|
+            \pause{}
+        \end{column}
+        \begin{column}{.47\textwidth}
+            \verb|~/example$|\pause{} \verb|ls|
+
+            \pause{}
+            \verb|file1  file2  file3|
+
+            \verb|~/example$|\pause{} \verb|echo Hello > file1|
+
+            \verb|~/example$|\pause{} \verb|cat fi| \pause{}
+
+            \verb|~/example$| \verb|cat file|
+            \pause{}
+            \verb|file1  file2  file3|
+
+            \verb|~/example$ cat file|\pause{}\verb|1|
+            \pause{}
+            \verb|Hello|
+        \end{column}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Tok dat v aplikaci}
+\begin{frame}{Architektura}
+    \includegraphics[width=.9\textwidth]{overview}
+\end{frame}
+
+\begin{frame}[plain,label=tokDat]
 \begin{center}
     \includegraphics[width=.9\textwidth]{diagram}
 \end{center}
 \end{frame}
 
-\section{Závěr}
+\begin{frame}{Parser}
+    \begin{itemize}[<+->]
+        \item Zpracovává uživatelský vstup
+        \item Dynamický -- je vytvářen za běhu z konkrétních dat
+        \item Abstraktní rozhraní Schema
+            % říct konkrétní
+        \item Generuje data pro automatické doplňování
+    \end{itemize}
+\end{frame}
+
+\againframe<1>{tokDat}
+
+\begin{frame}{Komunikace s datovými úložišti}
+    Abstraktní rozhraní DatastoreAccess\pause{}
+    \vfill
+    Komunikace se sysrepo démonem\pause{}
+    \begin{itemize}[<+->]
+        \item urychlení vývoje
+        \item zjednodušení aplikace -- NETCONF server není nutný
+    \end{itemize}
+
+    \vfill
+
+    \only<-4>{\ }
+    \only<5>{NETCONF rozhraní jako POC}
+\end{frame}
 
 \begin{frame}<1,2,3>[fragile,label=porovnani]{Porovnání s \textit{Netopeer2-cli}}
     Změna hodnoty example:leafInt na 5.
@@ -211,83 +192,112 @@
     \begin{columns}
         \pause{}
         \begin{column}{.47\textwidth}
-            \verb|// ... připojení k serveru ...|
+            \verb¨// ... připojení k serveru ...¨
 
-            \verb|>|\pause{} \verb|edit-config --target --config|
-
-            \pause{}
-            \verb|OK|
-
-            \verb|>|\pause{} \verb|commit|
+            \verb¨>¨\pause{} \verb|edit-config --target --config|
 
             \pause{}
-            \verb|OK|
+            \verb¨OK¨
 
-            \verb|>|
+            \verb¨>¨\pause{} \verb|commit|
+
+            \pause{}
+            \verb¨OK¨
+
+            \verb¨>¨
 
         \end{column}
         \pause{}
         \begin{column}{.47\textwidth}
-            \verb|// ... připojení k serveru ...|
+            \verb¨// ... připojení k serveru ...¨
 
-            \verb|>|\pause{} \verb|set |
-
-            \pause{}
-            \verb|example:leafInt example:leafString|
-
-            \verb|> set example:leaf|\pause{}\verb|I|\pause{}\verb|nt|\pause{} \verb|5|
+            \verb¨>¨\pause{} \verb|set |
 
             \pause{}
-            \verb|>|\pause{} \verb|commit|
+            \verb¨example:leafInt example:leafString¨
 
-            \verb|>|
+            \verb¨> set example:leaf¨\pause{}\verb|I|\pause{}\verb|nt|\pause{} \verb|5|
+
+            \pause{}
+            \verb¨>¨\pause{} \verb|commit|
+
+            \verb¨>¨
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}[plain,fragile]
-    \verb|    <!--#|
+    \verb¨    <!--#¨
 
-    \verb|    Type the content of the <edit-config>.|
+    \verb¨    Type the content of the <edit-config>.¨
 
-    \verb|    -->|
+    \verb¨    -->¨
 
     \color{gray}
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
 
-    \verb|    ~|
+    \verb¨    ~¨
+
+\end{frame}
+\begin{frame}[plain,fragile]
+    \verb¨    <leafInt xmlns="http://example.com">5</leafInt>¨
+
+    \color{gray}
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
+
+    \verb¨    ~¨
 
 \end{frame}
 
 \againframe<4->{porovnani}
 
-\section{Závěr}
+
 \begin{frame}{Shrnutí}
     \begin{itemize}
-        \pause{}
-        \item konzolová aplikace\pause{} -- splněno
-        \pause{}
-        \item komunikuje s CESNET zařízeními\pause{} -- splněno
-        \pause{}
-        \item nabízí prvky intuitivity\pause{} -- splněno
+        \item Identifikace nevýhod současných řešení
+        \item Implementace aplikace, která problémy mitiguje
+        \item Generičnost aplikace zajišťuje podporu i pro jiná zařízení
+        \item Aplikace je již testována na reálných zařízeních
     \end{itemize}
 \end{frame}
 \end{document}
