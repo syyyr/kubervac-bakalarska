@@ -7,6 +7,7 @@
 % from https://tex.stackexchange.com/a/251025
 \usepackage{relsize}
 \usepackage{xspace}
+\usepackage{dirtree}
 
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
@@ -32,7 +33,6 @@
 \author{Václav Kubernát}
 \supervisor{Ing. Tomáš Čejka, Ph.D.}
 % TODO: dopsat
-\acknowledgements{Doplňte, máte-li komu a za co děkovat. V~opačném případě úplně odstraňte tento příkaz.}
 
 \abstractCS{Tato práce se zabývá návrhem a implementací interaktivní konzolové aplikace sloužící ke~konfiguraci síťových zařízení. Tento program slouží jako alternativa k dostupným, méně intuitivním, řešením. Toho dosahuje přívětivým uživatelským rozhraním implementovaným pomocí kniho\-vny \textit{replxx}.
 
@@ -917,12 +917,16 @@ Hlavním přínosem této práce je jádro aplikace v podobě dynamického parse
 \appendix
 
 \chapter{Obsah přiloženého CD}
-% TODO: toto dopsat
 
-%\begin{figure}
-%	\dirtree{
-%            .1
-%	}
-%\end{figure}
+\begin{figure}
+	\dirtree{%
+		.1 readme.txt\DTcomment{stručný popis obsahu CD}.
+		.1 src.
+		.2 impl\DTcomment{zdrojové kódy implementace}.
+		.2 thesis\DTcomment{zdrojová forma práce ve formátu \LaTeX{}}.
+		.1 text\DTcomment{text práce}.
+		.2 thesis.pdf\DTcomment{text práce ve formátu PDF}.
+	}
+    \end{figure}
 
 \end{document}

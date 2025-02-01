@@ -38,7 +38,7 @@ build/prezentace.pdf: prezentace.tex logo-cvut.pdf | build
 	@echo " done."
 
 build:
-	mkdir build
+	mkdir -p build
 
 clean:
 	rm -rf build
